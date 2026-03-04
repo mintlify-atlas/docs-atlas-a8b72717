@@ -1,0 +1,203 @@
+---
+title: Environment Variables
+description: Configure the Grok Search MCP Server using environment variables
+---
+
+The Grok Search MCP Server is configured using environment variables. This page covers all available environment variables and how to set them on different platforms.
+
+## Required Environment Variables
+
+<ParamField path="XAI_API_KEY" type="string" required>
+  Your xAI API key for accessing the Grok API.
+  
+  **Format:** `xai-...`
+  
+  **How to obtain:**
+  1. Visit the [xAI Developer Portal](https://console.x.ai/)
+  2. Create an account or sign in
+  3. Navigate to the API Keys section
+  4. Generate a new API key
+  5. Copy the API key (it starts with `xai-`)
+  
+  **Security:** Never commit your API key to version control. Store it securely in environment variables or configuration files.
+</ParamField>
+
+## Optional Environment Variables
+
+<ParamField path="GROK_TIMEOUT" type="number" default="30000">
+  Request timeout in milliseconds. Controls how long the server waits for a response from the Grok API before timing out.
+  
+  **Recommended values:**
+  - Basic mode: `30000` (30 seconds)
+  - Comprehensive mode: `45000` (45 seconds) or higher
+  
+  **Example:** `GROK_TIMEOUT=45000`
+</ParamField>
+
+<ParamField path="GROK_MAX_RETRIES" type="number" default="3">
+  Maximum number of retry attempts for failed API requests. The server uses exponential backoff between retries.
+  
+  **Recommended values:**
+  - Standard use: `3` (default)
+  - Unstable networks: `5`
+  - Quick failures: `1`
+  
+  **Example:** `GROK_MAX_RETRIES=5`
+</ParamField>
+
+## Setting Environment Variables
+
+### macOS and Linux
+
+**Temporary (current session):**
+```bash
+export XAI_API_KEY="your-api-key-here"
+export GROK_TIMEOUT="45000"
+export GROK_MAX_RETRIES="3"
+```
+
+**Permanent (add to shell profile):**
+
+1. Open your shell configuration file:
+   ```bash
+   # For bash
+   nano ~/.bashrc
+   
+   # For zsh (macOS default)
+   nano ~/.zshrc
+   ```
+
+2. Add the environment variables:
+   ```bash
+   export XAI_API_KEY="your-api-key-here"
+   export GROK_TIMEOUT="45000"
+   export GROK_MAX_RETRIES="3"
+   ```
+
+3. Reload your shell configuration:
+   ```bash
+   source ~/.bashrc  # or ~/.zshrc
+   ```
+
+### Windows
+
+**Temporary (current session):**
+```cmd
+set XAI_API_KEY=your-api-key-here
+set GROK_TIMEOUT=45000
+set GROK_MAX_RETRIES=3
+```
+
+**PowerShell:**
+```powershell
+$env:XAI_API_KEY="your-api-key-here"
+$env:GROK_TIMEOUT="45000"
+$env:GROK_MAX_RETRIES="3"
+```
+
+**Permanent (system environment variables):**
+
+1. Open System Properties (Windows + Pause/Break)
+2. Click "Advanced system settings"
+3. Click "Environment Variables"
+4. Under "User variables", click "New"
+5. Add each variable with its value
+6. Click OK to save
+
+### Using a .env File
+
+For development, you can create a `.env` file in your project directory:
+
+```bash
+XAI_API_KEY=your-api-key-here
+GROK_TIMEOUT=45000
+GROK_MAX_RETRIES=3
+```
+
+<Warning>
+Never commit `.env` files to version control. Add `.env` to your `.gitignore` file.
+</Warning>
+
+## Verification
+
+To verify your environment variables are set correctly:
+
+**macOS/Linux:**
+```bash
+echo $XAI_API_KEY
+echo $GROK_TIMEOUT
+echo $GROK_MAX_RETRIES
+```
+
+**Windows (Command Prompt):**
+```cmd
+echo %XAI_API_KEY%
+echo %GROK_TIMEOUT%
+echo %GROK_MAX_RETRIES%
+```
+
+**Windows (PowerShell):**
+```powershell
+echo $env:XAI_API_KEY
+echo $env:GROK_TIMEOUT
+echo $env:GROK_MAX_RETRIES
+```
+
+## Best Practices
+
+1. **Security**
+   - Never hardcode API keys in your code
+   - Use environment variables or secure configuration management
+   - Rotate API keys regularly
+   - Monitor usage through the [xAI Developer Portal](https://console.x.ai/)
+
+2. **Performance**
+   - Use default timeout for basic mode searches
+   - Increase timeout for comprehensive mode to avoid premature timeouts
+   - Adjust retry count based on your network reliability
+
+3. **Development vs Production**
+   - Use different API keys for development and production
+   - Set lower timeout values in development for faster failure detection
+   - Use higher retry counts in production for better reliability
+
+## Troubleshooting
+
+### API Key Issues
+
+If you see "API service is not healthy - missing XAI_API_KEY":
+
+1. Verify the environment variable is set: `echo $XAI_API_KEY`
+2. Check the API key format (should start with `xai-`)
+3. Ensure there are no extra spaces or quotes
+4. Restart your terminal or application after setting the variable
+5. Use the `health_check` tool to verify API connectivity
+
+### Timeout Issues
+
+If you see "Request timeout after Xms":
+
+1. Increase `GROK_TIMEOUT` value (try `45000` or `60000`)
+2. Check your network connection
+3. Try basic mode instead of comprehensive mode
+4. Verify the Grok API is operational
+
+### Configuration Not Applied
+
+If changes don't take effect:
+
+1. Restart your terminal or command prompt
+2. Reload shell configuration: `source ~/.bashrc` or `source ~/.zshrc`
+3. For Claude Desktop, restart the application completely
+4. Check that environment variables are set in the correct scope
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Claude Desktop Configuration" icon="desktop" href="/configuration/claude-desktop">
+    Configure the server in Claude Desktop
+  </Card>
+  <Card title="Advanced Configuration" icon="sliders" href="/configuration/advanced">
+    Explore advanced configuration options
+  </Card>
+</CardGroup>

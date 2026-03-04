@@ -1,0 +1,247 @@
+---
+title: Analysis modes
+description: Choose between basic and comprehensive analysis modes based on your needs
+---
+
+The Grok Search MCP Server offers two distinct analysis modes to match your search requirements: **basic mode** for quick results and **comprehensive mode** for deep analysis.
+
+## Basic mode
+
+Basic mode provides traditional search results optimized for speed and efficiency. It's ideal when you need quick answers or want to minimize token usage.
+
+### What you get
+
+- **Search results**: Article titles, snippets, and URLs
+- **Source information**: Publication source and date
+- **Citations**: Direct links to all referenced sources
+- **Summary**: Brief overview of findings
+
+### Response structure
+
+```json
+{
+  "query": "search query",
+  "analysis_mode": "basic",
+  "results": [
+    {
+      "title": "Article Title",
+      "snippet": "Brief description or excerpt",
+      "url": "https://source.com",
+      "source": "source-name",
+      "published_date": "2025-06-24",
+      "author": "Author Name"
+    }
+  ],
+  "citations": ["https://source.com"],
+  "summary": "Brief overview of findings",
+  "total_results": 5
+}
+```
+
+### Token usage
+
+Basic mode uses approximately **2,000 tokens maximum** per request, making it cost-effective for high-frequency searches.
+
+<Tip>
+Start with basic mode for initial exploration, then switch to comprehensive mode when you need deeper analysis.
+</Tip>
+
+## Comprehensive mode
+
+Comprehensive mode delivers rich, detailed analysis with historical context, multiple perspectives, and structured insights. Use this when depth matters more than speed.
+
+### What you get
+
+- **Detailed analysis**: 500+ word comprehensive overview
+- **Timeline**: Chronological events with significance
+- **Direct quotes**: Exact quotes with full attribution and context
+- **Multiple perspectives**: Different viewpoints on the topic
+- **Key findings**: Categorized insights with confidence levels
+- **Fact verification**: Confirmed facts vs. unconfirmed claims
+- **Implications**: Short-term and long-term impacts
+- **Related context**: Historical background and connections
+
+### Response structure
+
+```json
+{
+  "query": "search query",
+  "analysis_mode": "comprehensive",
+  "comprehensive_analysis": "Detailed 500+ word analysis...",
+  "key_findings": [
+    {
+      "category": "main_story",
+      "title": "Primary Development",
+      "content": "Detailed explanation with specifics",
+      "sources": ["https://source1.com"],
+      "confidence": "high"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-06-21",
+      "event": "Initial event occurred",
+      "source": "News Source",
+      "significance": "This marked the beginning of..."
+    }
+  ],
+  "direct_quotes": [
+    {
+      "quote": "Exact quote from source",
+      "speaker": "Person Name",
+      "context": "During press conference",
+      "source_url": "https://source.com",
+      "significance": "This statement clarifies..."
+    }
+  ],
+  "multiple_perspectives": [
+    {
+      "viewpoint": "Supporters",
+      "content": "Analysis from this perspective",
+      "sources": ["https://source.com"],
+      "reasoning": "This group supports because..."
+    }
+  ],
+  "implications": {
+    "short_term": "Immediate consequences...",
+    "long_term": "Potential long-term impacts...",
+    "stakeholders_affected": ["Group 1", "Group 2"]
+  },
+  "verification_status": {
+    "confirmed_facts": ["Verified information"],
+    "unconfirmed_claims": ["Unverified claims"],
+    "contradictory_information": ["Conflicting reports"]
+  }
+}
+```
+
+### Token usage
+
+Comprehensive mode uses approximately **4,000 tokens maximum** per request, providing significantly more detail at a higher cost.
+
+### Caching
+
+Comprehensive analyses are automatically cached for **30 minutes** to improve performance and reduce API costs. The caching system (implemented in the `SearchCache` class, lines 36-70 of `index.js`) stores up to 100 recent queries.
+
+<Note>
+Cached results are returned instantly without consuming additional API tokens. Wait 30 minutes if you need fresh data for the same query.
+</Note>
+
+## When to use each mode
+
+<Tabs>
+  <Tab title="Use basic mode">
+    - Quick fact-checking or preliminary research
+    - Finding specific URLs or recent articles
+    - High-frequency searches where cost matters
+    - Simple queries that don't require deep context
+    - When response time is critical
+    - Searching for contact information or basic details
+  </Tab>
+  <Tab title="Use comprehensive mode">
+    - Complex topic analysis requiring context
+    - Research for detailed reports or presentations
+    - Understanding multiple perspectives on controversial issues
+    - Tracking timeline of events and developments
+    - Verifying facts and assessing confidence levels
+    - Deep analysis of news events or social trends
+    - When you need direct quotes with attribution
+  </Tab>
+</Tabs>
+
+## Practical examples
+
+### Example 1: News event analysis
+
+<Accordion title="Basic mode query">
+```json
+{
+  "query": "latest political developments",
+  "analysis_mode": "basic",
+  "search_type": "news",
+  "max_results": 5
+}
+```
+
+**Output**: List of recent news articles with titles, snippets, and URLs
+</Accordion>
+
+<Accordion title="Comprehensive mode query">
+```json
+{
+  "query": "latest political developments",
+  "analysis_mode": "comprehensive",
+  "search_type": "news",
+  "max_results": 10
+}
+```
+
+**Output**: Detailed analysis including timeline of events, direct quotes from officials, multiple political perspectives, historical context, and implications
+</Accordion>
+
+### Example 2: Twitter analysis
+
+<Accordion title="Basic mode - Kevin Durant basketball commentary">
+```json
+{
+  "query": "basketball commentary",
+  "handles": ["KDTrey5"],
+  "analysis_mode": "basic",
+  "max_results": 10
+}
+```
+
+**Output**: Recent tweets about basketball with timestamps and URLs
+</Accordion>
+
+<Accordion title="Comprehensive mode - Kevin Durant analysis">
+```json
+{
+  "query": "basketball commentary",
+  "handles": ["KDTrey5"],
+  "analysis_mode": "comprehensive",
+  "max_results": 15
+}
+```
+
+**Output**: Analysis of basketball perspectives, interaction patterns, timeline of posts, direct quotes with context, and engagement style evaluation
+</Accordion>
+
+## Performance comparison
+
+| Aspect | Basic mode | Comprehensive mode |
+|--------|------------|-------------------|
+| **Response time** | 3-8 seconds | 8-15 seconds |
+| **Token usage** | ~500-2,000 tokens | ~2,000-4,000 tokens |
+| **API cost** | Lower | Higher |
+| **Information depth** | Surface level | Deep analysis |
+| **Caching** | Not cached | Cached for 30 minutes |
+
+## Best practices
+
+### Two-phase approach
+
+1. **Phase 1**: Use basic mode to identify key topics and recent developments
+2. **Phase 2**: Use comprehensive mode to analyze the most relevant topics in depth
+3. **Phase 3**: Combine insights from both modes for complete understanding
+
+### Query optimization
+
+<Tabs>
+  <Tab title="Basic mode queries">
+    Use specific, targeted keywords:
+    - "Python 3.12 release notes"
+    - "SpaceX launch schedule 2025"
+    - "latest AI model benchmarks"
+  </Tab>
+  <Tab title="Comprehensive mode queries">
+    Use broader, conceptual queries:
+    - "AI regulation debate 2025"
+    - "climate change policy implications"
+    - "cryptocurrency market trends analysis"
+  </Tab>
+</Tabs>
+
+<Warning>
+Comprehensive mode may be slower or less effective for very narrow queries. Use basic mode for highly specific searches.
+</Warning>

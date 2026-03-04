@@ -1,0 +1,439 @@
+---
+title: Advanced Configuration
+description: Advanced configuration options for power users and developers
+---
+
+This guide covers advanced configuration scenarios for the Grok Search MCP Server, including development setups, multiple instances, performance tuning, and caching configuration.
+
+## Development Configuration
+
+When developing or debugging the server, use a local installation instead of NPX:
+
+```json
+{
+  "mcpServers": {
+    "grok-search-dev": {
+      "command": "node",
+      "args": ["/path/to/grok-search-mcp/index.js"],
+      "cwd": "/path/to/grok-search-mcp",
+      "env": {
+        "XAI_API_KEY": "your-api-key-here",
+        "NODE_ENV": "development"
+      }
+    }
+  }
+}
+```
+
+### Development Best Practices
+
+1. **Use a separate API key** for development to isolate usage and costs
+2. **Set lower timeouts** to detect issues faster:
+   ```json
+   "GROK_TIMEOUT": "15000"
+   ```
+3. **Enable verbose logging** by monitoring stderr output:
+   ```bash
+   npx grok-search-mcp 2>debug.log &
+   ```
+4. **Use basic mode** during development to reduce API costs
+
+## Multiple Server Instances
+
+You can run multiple instances of the Grok Search server with different configurations:
+
+```json
+{
+  "mcpServers": {
+    "grok-search-fast": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "your-api-key-here",
+        "GROK_TIMEOUT": "15000",
+        "GROK_MAX_RETRIES": "1"
+      }
+    },
+    "grok-search-comprehensive": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "your-api-key-here",
+        "GROK_TIMEOUT": "60000",
+        "GROK_MAX_RETRIES": "5"
+      }
+    }
+  }
+}
+```
+
+### Use Cases for Multiple Instances
+
+- **Fast instance:** Quick searches with lower timeout and fewer retries
+- **Comprehensive instance:** Deep analysis with higher timeout and more retries
+- **Development instance:** Local development with debug logging
+- **Production instance:** Optimized for reliability with appropriate retry settings
+
+## Custom Timeout and Retry Settings
+
+### Timeout Configuration
+
+The `GROK_TIMEOUT` variable controls request timeout in milliseconds:
+
+<ParamField path="GROK_TIMEOUT" type="number" default="30000">
+  **Recommended values by use case:**
+  
+  - **Basic searches:** `20000` - `30000` (20-30 seconds)
+  - **Comprehensive analysis:** `45000` - `60000` (45-60 seconds)
+  - **Slow networks:** `60000` - `90000` (60-90 seconds)
+  - **Development/testing:** `10000` - `15000` (10-15 seconds)
+</ParamField>
+
+```json
+{
+  "env": {
+    "XAI_API_KEY": "your-api-key-here",
+    "GROK_TIMEOUT": "45000"
+  }
+}
+```
+
+### Retry Configuration
+
+The `GROK_MAX_RETRIES` variable controls retry attempts:
+
+<ParamField path="GROK_MAX_RETRIES" type="number" default="3">
+  **Recommended values by scenario:**
+  
+  - **Stable networks:** `2` - `3` (default)
+  - **Unstable networks:** `4` - `5`
+  - **Quick failures:** `1` (fail fast)
+  - **Maximum reliability:** `5` (more retries)
+</ParamField>
+
+```json
+{
+  "env": {
+    "XAI_API_KEY": "your-api-key-here",
+    "GROK_MAX_RETRIES": "5"
+  }
+}
+```
+
+### Retry Behavior
+
+The server uses **exponential backoff** between retries:
+
+- **Retry 1:** Wait 1 second
+- **Retry 2:** Wait 2 seconds
+- **Retry 3:** Wait 4 seconds
+- **Retry 4:** Wait 8 seconds
+- **Retry 5:** Wait 16 seconds
+
+This prevents overwhelming the API while providing resilience against transient failures.
+
+## Caching Configuration
+
+The server implements automatic caching for comprehensive analyses to improve performance and reduce API costs.
+
+### Cache Characteristics
+
+<Info>
+Caching is **automatic** and requires no configuration. The following settings are hardcoded in the server:
+</Info>
+
+- **Cache TTL:** 30 minutes (1800 seconds)
+- **Maximum cache size:** 100 items
+- **Eviction policy:** LRU (Least Recently Used)
+- **Cached operations:** Comprehensive mode searches only
+- **Cache scope:** In-memory (per server instance)
+
+### How Caching Works
+
+1. **Cache Key Generation:** Includes query, search type, date range, and all parameters
+2. **Cache Hit:** Returns cached results if query matches and TTL hasn't expired
+3. **Cache Miss:** Makes API request and stores results in cache
+4. **Automatic Cleanup:** Old entries are removed when TTL expires or cache is full
+
+### Cache Behavior by Mode
+
+| Analysis Mode | Cached | Reason |
+|--------------|--------|--------|
+| Basic | ❌ No | Fast execution, always fresh results |
+| Comprehensive | ✅ Yes | Expensive operation, benefits from caching |
+
+### Monitoring Cache Usage
+
+Use the `health_check` tool to monitor cache size:
+
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "uptime_ms": 3600000,
+  "total_requests": 150,
+  "error_count": 3,
+  "success_rate": "98.00%",
+  "api_details": {
+    "hasApiKey": true,
+    "cacheSize": 42  // Current number of cached items
+  }
+}
+```
+
+### Cache Implications
+
+**Benefits:**
+- Reduced API costs for repeated queries
+- Faster response times for cached results
+- Lower API rate limit usage
+
+**Considerations:**
+- Results may be up to 30 minutes old
+- Cache is per-instance (not shared across servers)
+- Cache is cleared when server restarts
+- For real-time data, use basic mode
+
+## Performance Tuning
+
+### Optimizing for Speed
+
+For fastest response times:
+
+```json
+{
+  "env": {
+    "XAI_API_KEY": "your-api-key-here",
+    "GROK_TIMEOUT": "15000",
+    "GROK_MAX_RETRIES": "1"
+  }
+}
+```
+
+**Use when:**
+- You need quick results
+- Network is reliable
+- You prefer to fail fast
+- Using basic mode primarily
+
+### Optimizing for Reliability
+
+For maximum reliability:
+
+```json
+{
+  "env": {
+    "XAI_API_KEY": "your-api-key-here",
+    "GROK_TIMEOUT": "60000",
+    "GROK_MAX_RETRIES": "5"
+  }
+}
+```
+
+**Use when:**
+- Network is unstable
+- Using comprehensive mode
+- Results are critical
+- You can tolerate longer wait times
+
+### Optimizing for Cost
+
+To minimize API costs:
+
+1. **Use basic mode** by default
+2. **Leverage caching** by reusing queries
+3. **Reduce max_results** parameter (e.g., 5 instead of 10)
+4. **Use date ranges** to limit scope
+5. **Batch similar queries** to benefit from cache hits
+
+### Performance Recommendations by Use Case
+
+<Tabs>
+  <Tab title="News Monitoring">
+    ```json
+    {
+      "env": {
+        "XAI_API_KEY": "your-api-key-here",
+        "GROK_TIMEOUT": "30000",
+        "GROK_MAX_RETRIES": "3"
+      }
+    }
+    ```
+    
+    - Use basic mode for quick updates
+    - Use comprehensive mode for deep analysis
+    - Leverage cache for repeated topic monitoring
+  </Tab>
+  
+  <Tab title="Research">
+    ```json
+    {
+      "env": {
+        "XAI_API_KEY": "your-api-key-here",
+        "GROK_TIMEOUT": "60000",
+        "GROK_MAX_RETRIES": "5"
+      }
+    }
+    ```
+    
+    - Use comprehensive mode for detailed analysis
+    - Higher timeout for complex queries
+    - More retries for reliability
+  </Tab>
+  
+  <Tab title="Real-time Monitoring">
+    ```json
+    {
+      "env": {
+        "XAI_API_KEY": "your-api-key-here",
+        "GROK_TIMEOUT": "20000",
+        "GROK_MAX_RETRIES": "2"
+      }
+    }
+    ```
+    
+    - Use basic mode exclusively
+    - Lower timeout for quick results
+    - Fewer retries to avoid delays
+  </Tab>
+  
+  <Tab title="Development">
+    ```json
+    {
+      "env": {
+        "XAI_API_KEY": "your-dev-api-key",
+        "GROK_TIMEOUT": "15000",
+        "GROK_MAX_RETRIES": "1",
+        "NODE_ENV": "development"
+      }
+    }
+    ```
+    
+    - Separate API key for dev environment
+    - Lower timeout to detect issues quickly
+    - Minimal retries to fail fast
+  </Tab>
+</Tabs>
+
+## Environment-Specific Configurations
+
+### Production Configuration
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "your-production-api-key",
+        "GROK_TIMEOUT": "45000",
+        "GROK_MAX_RETRIES": "5"
+      }
+    }
+  }
+}
+```
+
+### Staging Configuration
+
+```json
+{
+  "mcpServers": {
+    "grok-search-staging": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "your-staging-api-key",
+        "GROK_TIMEOUT": "30000",
+        "GROK_MAX_RETRIES": "3"
+      }
+    }
+  }
+}
+```
+
+### Development Configuration
+
+```json
+{
+  "mcpServers": {
+    "grok-search-dev": {
+      "command": "node",
+      "args": ["/path/to/local/grok-search-mcp/index.js"],
+      "cwd": "/path/to/local/grok-search-mcp",
+      "env": {
+        "XAI_API_KEY": "your-dev-api-key",
+        "GROK_TIMEOUT": "15000",
+        "GROK_MAX_RETRIES": "1",
+        "NODE_ENV": "development"
+      }
+    }
+  }
+}
+```
+
+## Debugging and Logging
+
+### Enable Debug Logging
+
+Monitor server logs by redirecting stderr:
+
+```bash
+npx grok-search-mcp 2>debug.log &
+```
+
+Logs are in JSON format:
+
+```json
+{
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "level": "info",
+  "message": "Search request completed",
+  "data": {
+    "query": "AI developments",
+    "duration_ms": 2341
+  }
+}
+```
+
+### Log Levels
+
+- **error:** Critical failures and errors
+- **warn:** Non-critical issues and warnings
+- **info:** General information and request logs
+- **debug:** Detailed debugging information
+
+## Security Considerations
+
+### API Key Security
+
+1. **Never commit API keys** to version control
+2. **Use environment variables** instead of hardcoding
+3. **Rotate keys regularly** for security
+4. **Monitor usage** through xAI Developer Portal
+5. **Use separate keys** for different environments
+
+### Network Security
+
+- All API communications use **HTTPS**
+- Request timeouts prevent hanging connections
+- Retry logic includes backoff to prevent abuse
+- No sensitive data is cached
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="code" href="/configuration/environment-variables">
+    Complete environment variable reference
+  </Card>
+  <Card title="Claude Desktop Setup" icon="desktop" href="/configuration/claude-desktop">
+    Basic Claude Desktop configuration
+  </Card>
+  <Card title="Performance Optimization" icon="gauge" href="/api/performance">
+    Best practices for optimal performance
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/guides/troubleshooting">
+    Solve common configuration issues
+  </Card>
+</CardGroup>

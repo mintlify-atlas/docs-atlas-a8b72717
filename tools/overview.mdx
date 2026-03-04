@@ -1,0 +1,161 @@
+---
+title: Tools overview
+description: Complete reference for all 5 Grok Search MCP server tools
+---
+
+The Grok Search MCP server provides 5 powerful tools for searching and analyzing web content, news, and social media using xAI's Grok API.
+
+## Available tools
+
+<CardGroup cols={2}>
+  <Card title="grok-search" icon="magnifying-glass" href="/tools/grok-search">
+    Universal search tool with configurable search types and analysis modes
+  </Card>
+  <Card title="grok-web-search" icon="globe" href="/tools/grok-web-search">
+    Search general web content including articles, blogs, and informational pages
+  </Card>
+  <Card title="grok-news-search" icon="newspaper" href="/tools/grok-news-search">
+    Search recent news and current events with timeline analysis
+  </Card>
+  <Card title="grok-twitter" icon="x-twitter" href="/tools/grok-twitter">
+    Search Twitter/X posts with sentiment and trend analysis
+  </Card>
+  <Card title="health-check" icon="heart-pulse" href="/tools/health-check">
+    Monitor server health and API connectivity
+  </Card>
+</CardGroup>
+
+## Common parameters
+
+Most search tools share these common parameters:
+
+### query (required)
+
+The search query string you want to search for.
+
+- **Type**: string
+- **Length**: 1-1000 characters
+- **Validation**: Non-empty string, automatically sanitized
+
+### max_results (optional)
+
+Maximum number of search results to return.
+
+- **Type**: number
+- **Range**: 1-20
+- **Default**: 10
+
+### from_date (optional)
+
+Start date for filtering search results by publication date.
+
+- **Type**: string
+- **Format**: ISO8601 date (YYYY-MM-DD)
+- **Example**: "2025-01-01"
+- **Validation**: Must be a valid date and before or equal to `to_date`
+
+### to_date (optional)
+
+End date for filtering search results by publication date.
+
+- **Type**: string
+- **Format**: ISO8601 date (YYYY-MM-DD)
+- **Example**: "2025-12-31"
+- **Validation**: Must be a valid date and after or equal to `from_date`
+
+### analysis_mode (optional)
+
+Controls the depth and detail of the analysis returned.
+
+- **Type**: string
+- **Options**: "basic" or "comprehensive"
+- **Default**: "basic"
+
+## Analysis modes
+
+### Basic mode
+
+Returns straightforward search results with titles, snippets, URLs, and citations. Best for:
+
+- Quick searches
+- Simple information gathering
+- When you need fast results
+- Lower token usage
+
+**Response includes**:
+- Search results with titles and snippets
+- Source URLs and citations
+- Brief summary
+- Publication dates
+
+### Comprehensive mode
+
+Provides deep, detailed analysis with extensive context and multiple perspectives. Best for:
+
+- Complex topics requiring context
+- Research and in-depth analysis
+- Understanding timelines and development
+- Analyzing multiple viewpoints
+
+**Response includes**:
+- Detailed 500+ word analysis
+- Key findings with confidence levels
+- Timeline of events
+- Direct quotes with attribution
+- Multiple perspectives analysis
+- Short and long-term implications
+- Verification status (confirmed/unconfirmed)
+- Raw search results
+
+**Note**: Comprehensive analyses are cached for 30 minutes to improve performance.
+
+## Response formats
+
+All search tools return JSON responses with structured data. The exact format depends on the analysis mode:
+
+- [Basic mode response format](/api/response-formats#basic-mode)
+- [Comprehensive mode response format](/api/response-formats#comprehensive-mode)
+- [Error response format](/api/response-formats#error-responses)
+
+## Best practices
+
+### Query optimization
+
+- Use clear, specific queries for better results
+- Include relevant keywords and context
+- Try different phrasings if results aren't satisfactory
+
+### Parameter selection
+
+- Start with basic mode to verify functionality
+- Use comprehensive mode for complex analysis needs
+- Set appropriate `max_results` (5-10 for most cases)
+- Use date ranges for time-sensitive topics
+
+### Performance considerations
+
+- Basic mode is faster and uses fewer tokens
+- Comprehensive mode results are cached for 30 minutes
+- Use health check to monitor server performance
+- Date ranges can improve response speed
+
+## Tool selection guide
+
+| Use case | Recommended tool |
+|----------|------------------|
+| General web search | `grok_web_search` or `grok_search` |
+| Current events & breaking news | `grok_news_search` |
+| Social media trends & sentiment | `grok_twitter` |
+| Mixed content sources | `grok_search` with `search_type: "general"` |
+| Server diagnostics | `health_check` |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="API reference" icon="code" href="/api/response-formats">
+    Detailed API specifications and integration guides
+  </Card>
+  <Card title="Response formats" icon="brackets-curly" href="/api/response-formats">
+    Complete response structure documentation
+  </Card>
+</CardGroup>

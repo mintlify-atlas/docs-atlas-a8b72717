@@ -1,0 +1,419 @@
+---
+title: grok-news-search
+description: Search recent news and current events with timeline analysis and context
+---
+
+The `grok_news_search` tool is optimized for searching recent news articles and current events. It provides timeline analysis, direct quotes, and multiple perspectives when used in comprehensive mode.
+
+## When to use
+
+Use `grok_news_search` when you need to:
+
+- Search for recent news and breaking events
+- Track current affairs and developments
+- Analyze news with timeline and context
+- Get multiple perspectives on news stories
+- Find official statements and direct quotes
+- Research time-sensitive information
+
+For other types of searches:
+- Use [`grok_web_search`](/tools/grok-web-search) for general web content
+- Use [`grok_twitter`](/tools/grok-twitter) for social media reactions
+- Use [`grok_search`](/tools/grok-search) with `search_type: "general"` for mixed sources
+
+## Parameters
+
+<ParamField path="query" type="string" required>
+  The news search query to execute.
+  
+  - **Length**: 1-1000 characters
+  - **Validation**: Automatically sanitized to remove control characters
+  - **Example**: "climate change summit 2025 outcomes"
+</ParamField>
+
+<ParamField path="analysis_mode" type="string" default="basic">
+  Controls the depth and detail of the analysis.
+  
+  - **Options**: "basic", "comprehensive"
+  - **Default**: "basic"
+  - **basic**: Returns simple search results with titles, snippets, and URLs
+  - **comprehensive**: Provides detailed analysis with timelines, quotes, multiple perspectives, and verification status
+</ParamField>
+
+<ParamField path="max_results" type="number" default={10}>
+  Maximum number of news results to return.
+  
+  - **Range**: 1-20
+  - **Default**: 10
+  - **Note**: Actual results may be fewer if insufficient matches are found
+</ParamField>
+
+<ParamField path="from_date" type="string">
+  Optional start date for filtering news articles.
+  
+  - **Format**: ISO8601 date (YYYY-MM-DD)
+  - **Example**: "2025-06-01"
+  - **Validation**: Must be a valid date and before or equal to `to_date`
+  - **Effect**: Limits search to news published from this date onwards
+  - **Recommendation**: Use for tracking events over time
+</ParamField>
+
+<ParamField path="to_date" type="string">
+  Optional end date for filtering news articles.
+  
+  - **Format**: ISO8601 date (YYYY-MM-DD)
+  - **Example**: "2025-06-30"
+  - **Validation**: Must be a valid date and after or equal to `from_date`
+  - **Effect**: Limits search to news published up to this date
+  - **Recommendation**: Use for historical news analysis
+</ParamField>
+
+## Usage examples
+
+### Basic news search
+
+Search for recent news articles:
+
+```json
+{
+  "query": "artificial intelligence regulation"
+}
+```
+
+### Breaking news
+
+Get the latest information on current events:
+
+```json
+{
+  "query": "tech company earnings Q2 2025",
+  "max_results": 10,
+  "from_date": "2025-06-01"
+}
+```
+
+### Comprehensive news analysis
+
+Get detailed analysis with timeline and multiple perspectives:
+
+```json
+{
+  "query": "US Iran conflict 2025",
+  "analysis_mode": "comprehensive",
+  "max_results": 10,
+  "from_date": "2025-06-20",
+  "to_date": "2025-06-24"
+}
+```
+
+### Event tracking
+
+Track a story over time:
+
+```json
+{
+  "query": "climate summit negotiations",
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-01",
+  "to_date": "2025-06-23"
+}
+```
+
+### Historical news analysis
+
+Analyze news from a specific period:
+
+```json
+{
+  "query": "economic policy changes",
+  "from_date": "2025-01-01",
+  "to_date": "2025-03-31",
+  "max_results": 15
+}
+```
+
+## Response format
+
+### Basic mode response
+
+```json
+{
+  "query": "artificial intelligence regulation",
+  "analysis_mode": "basic",
+  "results": [
+    {
+      "title": "New AI Regulations Announced",
+      "snippet": "Government announces comprehensive AI regulation framework...",
+      "url": "https://news.example.com/ai-regulation",
+      "source": "Tech News Daily",
+      "published_date": "2025-06-23",
+      "author": "Jane Smith",
+      "citation_url": "https://news.example.com/ai-regulation",
+      "citation_index": 0
+    }
+  ],
+  "citations": ["https://news.example.com/ai-regulation"],
+  "summary": "Recent developments in AI regulation",
+  "total_results": 8,
+  "search_time": "2025-06-24T12:00:00Z",
+  "source": "grok-live-search"
+}
+```
+
+### Comprehensive mode response
+
+```json
+{
+  "query": "US Iran conflict 2025",
+  "analysis_mode": "comprehensive",
+  "comprehensive_analysis": "The recent developments in US-Iran relations have been marked by escalating tensions following...",
+  "key_findings": [
+    {
+      "category": "main_story",
+      "title": "Diplomatic Talks Break Down",
+      "content": "On June 20, 2025, diplomatic negotiations between US and Iranian officials collapsed after...",
+      "sources": ["https://news.example.com/us-iran-talks"],
+      "confidence": "high"
+    },
+    {
+      "category": "development",
+      "title": "International Response",
+      "content": "European allies have called for de-escalation...",
+      "sources": ["https://news.example.com/europe-response"],
+      "confidence": "high"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-06-20",
+      "event": "Diplomatic talks collapse in Vienna",
+      "source": "Reuters",
+      "significance": "Marks end of three-month negotiation period"
+    },
+    {
+      "date": "2025-06-22",
+      "event": "US announces new sanctions",
+      "source": "State Department",
+      "significance": "Escalates economic pressure"
+    }
+  ],
+  "direct_quotes": [
+    {
+      "quote": "We remain committed to a diplomatic solution",
+      "speaker": "Secretary of State John Doe",
+      "context": "Press conference, June 21, 2025",
+      "source_url": "https://state.gov/press-conference",
+      "significance": "Signals continued diplomatic efforts despite tensions"
+    }
+  ],
+  "multiple_perspectives": [
+    {
+      "viewpoint": "US Administration",
+      "content": "Emphasizes need for Iran to comply with international agreements",
+      "sources": ["https://whitehouse.gov/statement"],
+      "reasoning": "National security concerns and regional stability"
+    },
+    {
+      "viewpoint": "Iranian Government",
+      "content": "Claims sanctions are unjust and demands removal of economic restrictions",
+      "sources": ["https://news.example.com/iran-position"],
+      "reasoning": "Economic impact on civilian population"
+    },
+    {
+      "viewpoint": "International Observers",
+      "content": "Call for de-escalation and renewed negotiations",
+      "sources": ["https://un.org/statement"],
+      "reasoning": "Risk of regional instability"
+    }
+  ],
+  "implications": {
+    "short_term": "Increased military presence in region, economic volatility",
+    "long_term": "Potential for broader regional conflict, impact on energy markets",
+    "stakeholders_affected": ["Regional allies", "Energy markets", "Civilian populations"]
+  },
+  "verification_status": {
+    "confirmed_facts": [
+      "Diplomatic talks concluded on June 20, 2025",
+      "New sanctions announced June 22, 2025"
+    ],
+    "unconfirmed_claims": [
+      "Reports of military buildup in region"
+    ],
+    "contradictory_information": [
+      "Conflicting reports on nature of sanctions"
+    ]
+  },
+  "summary": "Comprehensive analysis of US-Iran tensions in June 2025",
+  "total_results": 10
+}
+```
+
+See [Response formats](/api/response-formats) for complete specifications.
+
+## Tips and best practices
+
+### Query optimization for news
+
+- **Include timeframes**: "climate summit June 2025" vs "climate summit"
+- **Be specific**: "Apple iPhone 16 launch event" vs "Apple news"
+- **Use proper nouns**: "President Biden climate policy" vs "climate policy"
+- **Include locations**: "California wildfire Santa Barbara" vs "wildfire"
+
+### When to use comprehensive mode
+
+Comprehensive mode is especially valuable for:
+
+- **Complex breaking news**: Understanding multi-faceted stories
+- **Controversial topics**: Seeing multiple perspectives
+- **Timeline analysis**: Tracking how events unfolded
+- **Quote verification**: Getting direct quotes with attribution
+- **Impact analysis**: Understanding short and long-term implications
+
+### Date filtering strategies
+
+#### Breaking news (last 24-48 hours)
+```json
+{
+  "from_date": "2025-06-22"
+}
+```
+
+#### Weekly recap (last 7 days)
+```json
+{
+  "from_date": "2025-06-17",
+  "to_date": "2025-06-24"
+}
+```
+
+#### Event tracking (specific period)
+```json
+{
+  "from_date": "2025-06-01",
+  "to_date": "2025-06-15"
+}
+```
+
+#### Historical analysis
+```json
+{
+  "from_date": "2025-01-01",
+  "to_date": "2025-03-31"
+}
+```
+
+### Performance optimization
+
+- **Basic mode**: Use for quick news scans (faster, lower token usage)
+- **Comprehensive mode**: Use for in-depth analysis (cached for 30 minutes)
+- **Date ranges**: Narrow date ranges improve response speed
+- **max_results**: Start with 5-10, increase if needed
+
+### Understanding verification status
+
+In comprehensive mode, the `verification_status` field helps you understand:
+
+- **confirmed_facts**: Information verified by multiple reliable sources
+- **unconfirmed_claims**: Reports that lack verification
+- **contradictory_information**: Conflicting reports from different sources
+
+Use this to assess reliability of information on developing stories.
+
+## Common use cases
+
+### Breaking news monitoring
+
+```json
+{
+  "query": "major tech outage today",
+  "from_date": "2025-06-24",
+  "max_results": 10
+}
+```
+
+### Political developments
+
+```json
+{
+  "query": "election results swing states",
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-01"
+}
+```
+
+### Economic news
+
+```json
+{
+  "query": "federal reserve interest rate decision",
+  "analysis_mode": "comprehensive",
+  "max_results": 10
+}
+```
+
+### International affairs
+
+```json
+{
+  "query": "G20 summit agreements climate",
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-15",
+  "to_date": "2025-06-24"
+}
+```
+
+### Technology news
+
+```json
+{
+  "query": "OpenAI GPT-5 announcement features",
+  "from_date": "2025-06-01"
+}
+```
+
+## Error handling
+
+Common errors and solutions:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "Search query must be a non-empty string" | Empty or invalid query | Provide a valid string query |
+| "Search query too long (max 1000 characters)" | Query exceeds limit | Shorten the query |
+| "from_date must be in ISO8601 format" | Invalid date format | Use YYYY-MM-DD format |
+| "from_date must be before or equal to to_date" | Invalid date range | Ensure from_date ≤ to_date |
+| "API service is not healthy" | Missing API key | Set XAI_API_KEY environment variable |
+| "Request timeout" | Complex comprehensive query | Try basic mode or reduce max_results |
+
+See [Error handling](/guides/error-handling) for complete error reference.
+
+## Search source details
+
+The `grok_news_search` tool uses the following search configuration:
+
+```javascript
+sources: [{"type": "news"}, {"type": "web"}]
+```
+
+This prioritizes:
+- News articles from major publications
+- Breaking news and current events
+- Press releases and official statements
+- Wire service reports (AP, Reuters, etc.)
+- With fallback to relevant web content
+
+## Related tools
+
+<CardGroup cols={2}>
+  <Card title="grok-search" icon="magnifying-glass" href="/tools/grok-search">
+    Universal search with configurable types
+  </Card>
+  <Card title="grok-twitter" icon="x-twitter" href="/tools/grok-twitter">
+    Social media reactions and sentiment
+  </Card>
+  <Card title="grok-web-search" icon="globe" href="/tools/grok-web-search">
+    General web content search
+  </Card>
+  <Card title="Response formats" icon="brackets-curly" href="/api/response-formats">
+    Complete response specifications
+  </Card>
+</CardGroup>

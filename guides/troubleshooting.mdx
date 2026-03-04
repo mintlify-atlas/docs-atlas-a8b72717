@@ -1,0 +1,528 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for the Grok Search MCP Server
+---
+
+This guide covers common problems and their solutions when using the Grok Search MCP Server.
+
+## Quick diagnostics
+
+Before troubleshooting specific issues, run the `health_check` tool:
+
+```json
+{
+  "tool": "health_check"
+}
+```
+
+This provides server status, API connectivity, request statistics, and recent error information.
+
+## Common issues
+
+<Accordion title="Server not appearing in Claude Desktop">
+
+### Symptoms
+- Grok search tools don't appear in Claude Desktop
+- MCP server list doesn't show "grok-search"
+- No tools available from the server
+
+### Causes and solutions
+
+**1. Configuration file not found or wrong location**
+
+Verify you're editing the correct file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+**2. Invalid JSON syntax**
+
+Validate your configuration file:
+
+```bash
+# macOS/Linux
+python -m json.tool ~/Library/Application\ Support/Claude/claude_desktop_config.json
+
+# Windows
+python -m json.tool %APPDATA%\Claude\claude_desktop_config.json
+```
+
+Common JSON errors:
+- Missing commas between objects
+- Extra commas after last item
+- Unmatched quotes or brackets
+
+**3. Claude Desktop not restarted**
+
+After configuration changes:
+1. Completely quit Claude Desktop (not just close window)
+2. Wait a few seconds
+3. Restart Claude Desktop
+4. Check available tools
+
+**4. NPX or Node.js not installed**
+
+Verify installation:
+
+```bash
+node --version  # Should show v18.0.0 or higher
+npx --version   # Should show version number
+```
+
+If missing, install Node.js from [nodejs.org](https://nodejs.org/)
+
+**5. Package not installed globally**
+
+Install the package:
+
+```bash
+git clone https://github.com/stat-guy/grok-search-mcp.git
+cd grok-search-mcp
+npm install -g .
+```
+
+Test installation:
+
+```bash
+npx grok-search-mcp --help
+```
+
+</Accordion>
+
+<Accordion title="API key issues">
+
+### Symptoms
+- Error: "API service is not healthy - missing XAI_API_KEY"
+- Error: "API request failed: 401 - Unauthorized"
+- All searches fail immediately
+
+### Causes and solutions
+
+**1. API key not set in configuration**
+
+Verify your `claude_desktop_config.json` includes the API key:
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "xai-your-actual-key-here"
+      }
+    }
+  }
+}
+```
+
+**2. Invalid API key format**
+
+API keys from xAI should start with `xai-`. Example:
+- ✓ Correct: `xai-abc123def456...`
+- ✗ Incorrect: `abc123def456...` (missing prefix)
+
+**3. API key expired or revoked**
+
+1. Visit [xAI Developer Portal](https://console.x.ai/)
+2. Check if your API key is still active
+3. Generate a new key if needed
+4. Update configuration with new key
+5. Restart Claude Desktop
+
+**4. Extra spaces or quotes in configuration**
+
+Ensure no extra characters:
+
+```json
+// ✓ Correct
+"XAI_API_KEY": "xai-abc123"
+
+// ✗ Incorrect
+"XAI_API_KEY": " xai-abc123 "  // Extra spaces
+"XAI_API_KEY": "\"xai-abc123\""  // Extra quotes
+```
+
+**Verify API key health**
+
+Use `health_check` tool:
+
+```json
+{
+  "api_details": {
+    "hasApiKey": true,  // Should be true
+    "lastError": null   // Should be null if key is valid
+  }
+}
+```
+
+</Accordion>
+
+<Accordion title="Timeout errors">
+
+### Symptoms
+- Error: "Request timeout after 30000ms"
+- Searches take very long then fail
+- Comprehensive mode times out but basic mode works
+
+### Causes and solutions
+
+**1. Network connectivity issues**
+
+Test your connection:
+
+```bash
+ping api.x.ai
+curl -I https://api.x.ai
+```
+
+If connection is slow:
+- Check your internet speed
+- Try again from a different network
+- Check if firewall is blocking requests
+
+**2. Comprehensive mode timeout**
+
+Comprehensive analysis takes longer. Increase timeout:
+
+```json
+{
+  "env": {
+    "XAI_API_KEY": "your-key",
+    "GROK_TIMEOUT": "45000"  // 45 seconds instead of 30
+  }
+}
+```
+
+Recommended timeouts:
+- Basic mode: 30000ms (30 seconds)
+- Comprehensive mode: 45000-60000ms (45-60 seconds)
+
+**3. Query too complex**
+
+Simplify your search:
+- Use basic mode instead of comprehensive
+- Reduce `max_results` parameter
+- Make query more specific
+- Narrow date range
+
+**4. xAI API service slow**
+
+The xAI API may be experiencing high load:
+- Wait a few minutes and retry
+- Check xAI status page for outages
+- Use basic mode for faster responses
+
+</Accordion>
+
+<Accordion title="Poor quality results">
+
+### Symptoms
+- Results don't match query
+- Too few results returned
+- Outdated or irrelevant information
+- Comprehensive analysis is shallow
+
+### Causes and solutions
+
+**1. Query too vague**
+
+Make queries more specific:
+
+<Tabs>
+  <Tab title="Vague">
+    ```json
+    {"query": "news"}
+    ```
+    Too broad, will return random news
+  </Tab>
+  <Tab title="Specific">
+    ```json
+    {
+      "query": "artificial intelligence regulation Europe 2025",
+      "search_type": "news"
+    }
+    ```
+    Clear topic with context
+  </Tab>
+</Tabs>
+
+**2. Wrong search type**
+
+Use appropriate search type for your content:
+
+- **news**: Recent news articles and breaking developments
+- **web**: General web content, blogs, documentation
+- **twitter**: Social media posts and conversations
+- **general**: Mix of all sources
+
+**3. Date range too narrow or broad**
+
+Adjust date filtering:
+
+```json
+// Too narrow - may have no results
+{
+  "from_date": "2025-06-24",
+  "to_date": "2025-06-24"
+}
+
+// Better - reasonable range
+{
+  "from_date": "2025-06-01",
+  "to_date": "2025-06-24"
+}
+```
+
+**4. Topic has limited coverage**
+
+Some topics may have sparse information:
+- Try different keyword variations
+- Broaden the query
+- Remove date restrictions
+- Check if topic is too niche or too recent
+
+**5. Using wrong analysis mode**
+
+Choose appropriate mode:
+- **Basic mode**: Quick facts, recent articles, specific information
+- **Comprehensive mode**: Complex analysis, context, multiple perspectives
+
+**6. Results not cached**
+
+Comprehensive analyses are cached for 30 minutes:
+- First request may be slower
+- Repeat requests are instant (if within 30 min)
+- Wait 30 minutes for fresh data
+
+</Accordion>
+
+<Accordion title="Validation errors">
+
+### Symptoms
+- Error: "Search query must be a non-empty string"
+- Error: "from_date must be in ISO8601 format (YYYY-MM-DD)"
+- Error: "Search query too long (max 1000 characters)"
+
+### Causes and solutions
+
+**1. Empty or invalid query**
+
+Ensure query is a non-empty string:
+
+```json
+// ✗ Incorrect
+{"query": ""}
+{"query": null}
+{"query": 123}
+
+// ✓ Correct
+{"query": "AI developments"}
+```
+
+**2. Query too long**
+
+Queries are limited to 1000 characters:
+
+```json
+// If query is too long, break it into smaller searches
+{"query": "first part of research"}
+{"query": "second part of research"}
+```
+
+**3. Invalid date format**
+
+Use ISO8601 format (YYYY-MM-DD):
+
+```json
+// ✗ Incorrect
+{"from_date": "06/24/2025"}
+{"from_date": "24-06-2025"}
+{"from_date": "2025-6-24"}
+
+// ✓ Correct
+{"from_date": "2025-06-24"}
+```
+
+**4. Invalid date values**
+
+Dates must be real calendar dates:
+
+```json
+// ✗ Incorrect
+{"from_date": "2025-02-30"}  // Feb doesn't have 30 days
+{"from_date": "2025-13-01"}  // Month 13 doesn't exist
+
+// ✓ Correct
+{"from_date": "2025-02-28"}
+{"from_date": "2025-12-01"}
+```
+
+**5. Invalid date range**
+
+`from_date` must be before or equal to `to_date`:
+
+```json
+// ✗ Incorrect
+{
+  "from_date": "2025-06-24",
+  "to_date": "2025-06-20"
+}
+
+// ✓ Correct
+{
+  "from_date": "2025-06-20",
+  "to_date": "2025-06-24"
+}
+```
+
+</Accordion>
+
+## Diagnostic commands
+
+### Check Node.js and NPX
+
+```bash
+node --version
+npx --version
+```
+
+### Validate configuration file
+
+```bash
+# macOS/Linux
+python -m json.tool ~/Library/Application\ Support/Claude/claude_desktop_config.json
+
+# Or use jq if installed
+jq . ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+### Test server directly
+
+```bash
+XAI_API_KEY=your-key npx grok-search-mcp --help
+```
+
+### Run test suite
+
+```bash
+cd grok-search-mcp
+XAI_API_KEY=your-key npm test
+```
+
+### Monitor server logs
+
+```bash
+npx grok-search-mcp 2>debug.log &
+tail -f debug.log
+```
+
+## Configuration verification
+
+### Minimum working configuration
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "xai-your-key-here"
+      }
+    }
+  }
+}
+```
+
+### Advanced configuration
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "xai-your-key-here",
+        "GROK_TIMEOUT": "45000",
+        "GROK_MAX_RETRIES": "5"
+      }
+    }
+  }
+}
+```
+
+## Health check interpretation
+
+### Healthy server
+
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "uptime_ms": 3600000,
+  "total_requests": 150,
+  "error_count": 3,
+  "success_rate": "98.00%",
+  "api_details": {
+    "hasApiKey": true,
+    "cacheSize": 12,
+    "lastError": null
+  }
+}
+```
+
+**Indicators**:
+- ✓ `server_healthy`: true
+- ✓ `api_healthy`: true
+- ✓ `hasApiKey`: true
+- ✓ `lastError`: null
+- ✓ `success_rate`: >90%
+
+### Unhealthy server
+
+```json
+{
+  "server_healthy": true,
+  "api_healthy": false,
+  "api_details": {
+    "hasApiKey": false,
+    "lastError": "API service is not healthy - missing XAI_API_KEY"
+  }
+}
+```
+
+**Indicators**:
+- ✗ `api_healthy`: false
+- ✗ `hasApiKey`: false
+- ✗ `lastError`: Contains error message
+
+<Warning>
+If `hasApiKey` is false, no searches will work. Fix API key configuration first.
+</Warning>
+
+## Still having issues?
+
+If you've tried the solutions above and still encounter problems:
+
+1. **Check the logs**: Run server with logging to see detailed error messages
+2. **Verify API status**: Visit [xAI Developer Portal](https://console.x.ai/) to check service status
+3. **Test basic functionality**: Try the simplest possible query with basic mode
+4. **Review recent changes**: Revert any recent configuration changes
+5. **Create an issue**: Report bugs at the [GitHub repository](https://github.com/stat-guy/grok-search-mcp)
+
+### Information to include in bug reports
+
+- Health check output
+- Error messages (including `request_id`)
+- Configuration file (with API key redacted)
+- Node.js version (`node --version`)
+- Operating system
+- Steps to reproduce the issue
+
+## Related pages
+
+- [Configuration](/configuration/environment-variables) - Detailed configuration options
+- [Error handling](/guides/error-handling) - Understanding error responses
+- [Installation](/installation) - Setup instructions

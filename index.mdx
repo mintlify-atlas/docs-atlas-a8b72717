@@ -1,97 +1,226 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Grok Search MCP Server Documentation
+mode: custom
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-br from-[#020627] via-[#0a0f2e] to-[#020627] dark:from-[#020627] dark:via-[#0a0f2e] dark:to-[#020627] py-20 px-4 sm:px-6 lg:px-8">
+  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
+  
+  <div className="relative max-w-7xl mx-auto">
+    <div className="text-center">
+      <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+        Grok Search MCP Server
+      </h1>
+      <p className="text-xl sm:text-2xl text-gray-300 dark:text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
+        Enhanced MCP server providing web search, news search, and Twitter/X search through xAI's Grok API with comprehensive analysis capabilities
+      </p>
+      
+      <div className="flex flex-wrap justify-center gap-4 mb-12">
+        <a
+          href="/quickstart"
+          className="inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold text-white bg-[#529c3a] hover:bg-[#478832] rounded-lg transition-colors shadow-lg hover:shadow-xl"
+        >
+          Get Started
+        </a>
+        <a
+          href="/tools/overview"
+          className="inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg transition-colors backdrop-blur-sm"
+        >
+          View Tools
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Quick start</h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Get your Grok Search MCP server running in minutes with these simple steps
+    </p>
+  </div>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <Steps>
+    <Step title="Get your xAI API key">
+      Visit the [xAI Developer Portal](https://console.x.ai/), create an account, and generate your API key. Copy the key (format: `xai-...`) for the next step.
+    </Step>
+    
+    <Step title="Install the server">
+      Install the MCP server globally using npm:
+      
+      ```bash
+      git clone https://github.com/stat-guy/grok-search-mcp.git
+      cd grok-search-mcp
+      npm install -g .
+      ```
+      
+      Verify the installation:
+      
+      ```bash
+      npx grok-search-mcp --help
+      ```
+    </Step>
+    
+    <Step title="Configure Claude Desktop">
+      Add the server to your Claude Desktop configuration file. On macOS, edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+      
+      ```json
+      {
+        "mcpServers": {
+          "grok-search": {
+            "command": "npx",
+            "args": ["grok-search-mcp"],
+            "env": {
+              "XAI_API_KEY": "your-api-key-here"
+            }
+          }
+        }
+      }
+      ```
+      
+      <Note>Replace `your-api-key-here` with your actual xAI API key from step 1.</Note>
+    </Step>
+    
+    <Step title="Restart Claude Desktop">
+      Completely quit Claude Desktop and restart it. The Grok Search tools will now be available in your conversations.
+    </Step>
+  </Steps>
+</div>
 
-## Make it yours
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Key features</h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Powerful search capabilities with advanced analysis modes
+    </p>
+  </div>
 
-Design a docs site that looks great and empowers your users.
+  <CardGroup cols={2}>
+    <Card title="Multiple search types" icon="magnifying-glass" href="/tools/overview">
+      Web, news, and Twitter/X search with Grok's AI-powered capabilities
+    </Card>
+    <Card title="Comprehensive analysis" icon="chart-line" href="/guides/analysis-modes">
+      Rich analysis including timelines, quotes, perspectives, and fact verification
+    </Card>
+    <Card title="Built-in reliability" icon="shield-check" href="/guides/error-handling">
+      Automatic retry logic, caching, and health monitoring for robust operation
+    </Card>
+    <Card title="Date range filtering" icon="calendar" href="/guides/date-filtering">
+      Search within specific time periods for time-sensitive queries
+    </Card>
+  </CardGroup>
+</div>
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Available tools</h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Five powerful tools for comprehensive search and diagnostics
+    </p>
+  </div>
 
-## Create beautiful pages
+  <CardGroup cols={2}>
+    <Card title="grok_search" icon="wand-magic-sparkles" href="/tools/grok-search">
+      Universal search tool with configurable types and analysis modes
+    </Card>
+    <Card title="grok_web_search" icon="globe" href="/tools/grok-web-search">
+      Search general web content with comprehensive analysis support
+    </Card>
+    <Card title="grok_news_search" icon="newspaper" href="/tools/grok-news-search">
+      Search recent news with timeline analysis and context
+    </Card>
+    <Card title="grok_twitter" icon="x-twitter" href="/tools/grok-twitter">
+      Search Twitter/X posts with sentiment analysis
+    </Card>
+    <Card title="health_check" icon="heart-pulse" href="/tools/health-check">
+      Monitor server health and API connectivity status
+    </Card>
+  </CardGroup>
+</div>
 
-Everything you need to create world-class documentation.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="text-center mb-12">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Explore documentation</h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+      Dive deeper into configuration, guides, and API references
+    </p>
+  </div>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a href="/configuration/environment-variables" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#848c8e] dark:hover:border-[#848c8e] overflow-hidden no-underline transition-colors bg-white dark:bg-[#1a1d27]">
+      <div className="p-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Configuration</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Learn how to configure environment variables, Claude Desktop, and advanced settings
+        </p>
+        <div className="flex items-center text-sm font-medium text-[#848c8e] group-hover:text-[#848c8e]">
+          View configuration guides
+          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
 
-## Need inspiration?
+    <a href="/guides/analysis-modes" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#848c8e] dark:hover:border-[#848c8e] overflow-hidden no-underline transition-colors bg-white dark:bg-[#1a1d27]">
+      <div className="p-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Guides</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Master analysis modes, error handling, troubleshooting, and date filtering
+        </p>
+        <div className="flex items-center text-sm font-medium text-[#848c8e] group-hover:text-[#848c8e]">
+          Read guides
+          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+    <a href="/api/response-formats" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#848c8e] dark:hover:border-[#848c8e] overflow-hidden no-underline transition-colors bg-white dark:bg-[#1a1d27]">
+      <div className="p-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">API Reference</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Detailed documentation of response formats, caching, and performance
+        </p>
+        <div className="flex items-center text-sm font-medium text-[#848c8e] group-hover:text-[#848c8e]">
+          Explore API reference
+          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
+
+    <a href="/guides/troubleshooting" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#848c8e] dark:hover:border-[#848c8e] overflow-hidden no-underline transition-colors bg-white dark:bg-[#1a1d27]">
+      <div className="p-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Troubleshooting</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Common issues, diagnostic steps, and solutions for server problems
+        </p>
+        <div className="flex items-center text-sm font-medium text-[#848c8e] group-hover:text-[#848c8e]">
+          Get help
+          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div className="mt-20 mb-16 max-w-5xl mx-auto px-6">
+  <div className="rounded-2xl border border-gray-200 dark:border-[#27272a] p-8 sm:p-12 text-center bg-gradient-to-br from-white to-gray-50 dark:from-[#1a1d27] dark:to-[#0f1117]">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Ready to get started?</h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+      Install the Grok Search MCP server and start enhancing your AI conversations with powerful search capabilities
+    </p>
+    <a
+      href="/quickstart"
+      className="inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold text-white bg-[#529c3a] hover:bg-[#478832] rounded-lg transition-colors shadow-lg hover:shadow-xl"
+    >
+      Get Started Now
+    </a>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+---
+title: Response formats
+description: Overview of basic and comprehensive response types
+---
+
+The Grok Search MCP Server returns different response structures depending on the analysis mode specified in your request.
+
+## Analysis modes
+
+The server supports two analysis modes:
+
+- **Basic mode** - Returns traditional search results with titles, snippets, URLs, and citations
+- **Comprehensive mode** - Provides rich analysis including timelines, direct quotes, multiple perspectives, and contextual insights
+
+## Common response fields
+
+Both analysis modes include these standard fields:
+
+<ResponseField name="query" type="string" required>
+  The original search query that was executed
+</ResponseField>
+
+<ResponseField name="analysis_mode" type="string" required>
+  The analysis mode used: `"basic"` or `"comprehensive"`
+</ResponseField>
+
+<ResponseField name="results" type="array">
+  Array of search results (basic mode) or raw results (comprehensive mode)
+</ResponseField>
+
+<ResponseField name="summary" type="string" required>
+  Brief overview of the search findings
+</ResponseField>
+
+<ResponseField name="total_results" type="number" required>
+  Total number of results returned
+</ResponseField>
+
+<ResponseField name="search_time" type="string" required>
+  ISO 8601 timestamp of when the search was executed
+</ResponseField>
+
+<ResponseField name="source" type="string" required>
+  The source identifier: `"grok-live-search"` for basic mode or `"grok-comprehensive-analysis"` for comprehensive mode
+</ResponseField>
+
+<ResponseField name="citations" type="array">
+  Array of citation URLs from the search results
+</ResponseField>
+
+<ResponseField name="citation_metadata" type="array">
+  Array of metadata objects for each citation including domain, protocol, and security information
+</ResponseField>
+
+## Response structure by mode
+
+The response structure varies significantly based on the analysis mode:
+
+### Basic mode
+
+Basic mode returns a straightforward list of search results with standard fields like title, snippet, and URL. This mode is optimized for speed and uses approximately 2,000 tokens per request.
+
+[Learn more about basic mode responses](/api/basic-mode)
+
+### Comprehensive mode
+
+Comprehensive mode includes all basic mode fields plus extensive analysis features:
+
+- **Comprehensive analysis** - Detailed 500+ word analysis with context and implications
+- **Key findings** - Categorized findings with confidence levels
+- **Timeline** - Chronological sequence of events with significance
+- **Direct quotes** - Exact quotes with full attribution and context
+- **Multiple perspectives** - Analysis from different stakeholder viewpoints
+- **Implications** - Short-term and long-term impact analysis
+- **Verification status** - Tracking of confirmed facts vs unconfirmed claims
+
+Comprehensive mode uses approximately 4,000 tokens per request and results are cached for 30 minutes.
+
+[Learn more about comprehensive mode responses](/api/comprehensive-mode)
+
+## When to use each mode
+
+**Use basic mode when:**
+- You need quick search results
+- You want to minimize token usage
+- You need always-fresh results (no caching)
+- Simple information lookup is sufficient
+
+**Use comprehensive mode when:**
+- You need deep contextual analysis
+- Timeline of events is important
+- Multiple perspectives are valuable
+- You need fact verification status
+- Direct quotes with attribution are needed
+- You can benefit from cached results
+
+## Error responses
+
+When a search fails, the server returns an error response format that includes diagnostic information.
+
+[Learn more about error responses](/api/error-responses)

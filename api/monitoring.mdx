@@ -1,0 +1,445 @@
+---
+title: Monitoring
+description: Health checks, metrics, and debugging capabilities
+---
+
+The Grok Search MCP Server provides comprehensive monitoring capabilities through health checks, structured logging, and performance metrics.
+
+## Health check tool
+
+The `health_check` tool provides real-time server and API status information.
+
+### Request format
+
+```json
+{
+  "tool": "health_check"
+}
+```
+
+No parameters are required.
+
+### Response structure
+
+<ResponseField name="server_healthy" type="boolean" required>
+  Indicates if the MCP server is running and operational
+</ResponseField>
+
+<ResponseField name="api_healthy" type="boolean" required>
+  Indicates if the xAI API connection is healthy and the API key is configured
+</ResponseField>
+
+<ResponseField name="uptime_ms" type="number" required>
+  Server uptime in milliseconds since startup
+</ResponseField>
+
+<ResponseField name="total_requests" type="number" required>
+  Total number of search requests processed since server startup
+</ResponseField>
+
+<ResponseField name="error_count" type="number" required>
+  Total number of failed requests since server startup
+</ResponseField>
+
+<ResponseField name="success_rate" type="string" required>
+  Success rate percentage formatted as a string (e.g., "98.00%"). Returns "N/A" if no requests have been processed.
+</ResponseField>
+
+<ResponseField name="api_details" type="object" required>
+  Detailed API health information
+  
+  <Expandable title="API details properties">
+    <ResponseField name="hasApiKey" type="boolean" required>
+      Whether the XAI_API_KEY environment variable is set
+    </ResponseField>
+    
+    <ResponseField name="cacheSize" type="number" required>
+      Number of items currently stored in the cache
+    </ResponseField>
+    
+    <ResponseField name="lastError" type="string | null" required>
+      The most recent error message, or null if no errors have occurred
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example response
+
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "uptime_ms": 3600000,
+  "total_requests": 150,
+  "error_count": 3,
+  "success_rate": "98.00%",
+  "api_details": {
+    "hasApiKey": true,
+    "cacheSize": 12,
+    "lastError": null
+  }
+}
+```
+
+### Example unhealthy response
+
+```json
+{
+  "server_healthy": true,
+  "api_healthy": false,
+  "uptime_ms": 120000,
+  "total_requests": 25,
+  "error_count": 25,
+  "success_rate": "0.00%",
+  "api_details": {
+    "hasApiKey": false,
+    "cacheSize": 0,
+    "lastError": "API service is not healthy - missing XAI_API_KEY"
+  }
+}
+```
+
+## Performance tracking
+
+The server tracks performance metrics automatically through the `GrokSearchServer` class.
+
+### Request counter
+
+```javascript
+this.requestCount = 0;  // Incremented on every search request
+```
+
+Tracks total number of search requests processed since server startup.
+
+### Error counter
+
+```javascript
+this.errorCount = 0;  // Incremented on request failures
+```
+
+Tracks total number of failed requests for success rate calculation.
+
+### Uptime tracking
+
+```javascript
+this.startTime = Date.now();  // Set at server initialization
+const uptime = Date.now() - this.startTime;  // Calculated on demand
+```
+
+Tracks server uptime in milliseconds.
+
+### Success rate calculation
+
+```javascript
+const successRate = this.requestCount > 0 ? 
+  (((this.requestCount - this.errorCount) / this.requestCount) * 100).toFixed(2) + "%" : 
+  "N/A";
+```
+
+Calculates the percentage of successful requests. Returns "N/A" if no requests have been processed.
+
+## Structured logging
+
+The server implements structured JSON logging through the `Logger` class (index.js:73-94).
+
+### Log format
+
+```json
+{
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "level": "info",
+  "message": "Log message",
+  "data": { /* optional additional data */ }
+}
+```
+
+### Log levels
+
+<ResponseField name="error" type="string">
+  Critical errors that require attention
+</ResponseField>
+
+<ResponseField name="warn" type="string">
+  Warning messages about potential issues
+</ResponseField>
+
+<ResponseField name="info" type="string">
+  Informational messages about normal operations
+</ResponseField>
+
+<ResponseField name="debug" type="string">
+  Detailed debugging information
+</ResponseField>
+
+### Log examples
+
+#### API request success
+
+```json
+{
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "level": "debug",
+  "message": "API request successful",
+  "data": {
+    "duration": 1523,
+    "endpoint": "/chat/completions"
+  }
+}
+```
+
+#### Cache hit
+
+```json
+{
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "level": "debug",
+  "message": "Cache hit for comprehensive analysis",
+  "data": {
+    "query": "search query"
+  }
+}
+```
+
+#### Retry attempt
+
+```json
+{
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "level": "warn",
+  "message": "Request failed, retrying in 1000ms",
+  "data": {
+    "status": 429,
+    "attempt": 1,
+    "maxRetries": 3
+  }
+}
+```
+
+#### Search failure
+
+```json
+{
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "level": "error",
+  "message": "Search failed",
+  "data": {
+    "query": "search query",
+    "error": "Request timeout after 30000ms"
+  }
+}
+```
+
+### Capturing logs
+
+All logs are written to `stderr` for easy capture:
+
+```bash
+# Capture logs to file
+npx grok-search-mcp 2>debug.log
+
+# View logs in real-time
+npx grok-search-mcp 2>&1 | grep -E '"level":"(error|warn)"'
+
+# Parse structured logs with jq
+tail -f debug.log | jq 'select(.level == "error")'
+```
+
+## API health monitoring
+
+The `GrokSearchAPI` class maintains API health state:
+
+```javascript
+this.isHealthy = true;  // Set to false if API key is missing
+this.lastError = null;  // Updated with most recent error message
+```
+
+### Health check method
+
+```javascript
+checkHealth() {
+  return {
+    healthy: this.isHealthy,
+    hasApiKey: !!this.apiKey,
+    cacheSize: this.cache.cache.size,
+    lastError: this.lastError || null
+  };
+}
+```
+
+Returns current health status including:
+- Overall health status
+- API key configuration
+- Cache utilization
+- Most recent error
+
+## Debugging recommendations
+
+### 1. Enable log capture
+
+Always capture logs when debugging:
+
+```bash
+# Start server with log capture
+XAI_API_KEY=your-key npx grok-search-mcp 2>server.log &
+
+# Monitor logs in real-time
+tail -f server.log | jq
+```
+
+### 2. Check health status first
+
+Always start debugging with a health check:
+
+```json
+{
+  "tool": "health_check"
+}
+```
+
+**Diagnostic checklist:**
+- ✅ `server_healthy: true` - Server is running
+- ✅ `api_healthy: true` - API is accessible
+- ✅ `hasApiKey: true` - API key is configured
+- ❌ `lastError: null` - No recent errors
+- ✅ `success_rate: >95%` - Good performance
+
+### 3. Analyze error patterns
+
+Look for patterns in error messages:
+
+```bash
+# Count error types
+grep -E '"level":"error"' server.log | \
+  jq -r '.data.error' | \
+  sort | uniq -c | sort -rn
+
+# Find timeout errors
+grep "timeout" server.log | jq
+
+# Check retry attempts
+grep "retrying" server.log | jq
+```
+
+### 4. Monitor performance metrics
+
+Track metrics over time:
+
+```bash
+# Success rate history
+while true; do
+  echo -n "$(date): "
+  # Call health_check and extract success_rate
+  sleep 60
+done
+```
+
+### 5. Test with simple queries
+
+Isolate issues with minimal test cases:
+
+```json
+{
+  "tool": "grok_search",
+  "arguments": {
+    "query": "test",
+    "analysis_mode": "basic",
+    "max_results": 1
+  }
+}
+```
+
+### 6. Check cache behavior
+
+Monitor cache size for memory issues:
+
+```bash
+# Watch cache growth
+watch -n 5 'echo "health_check" | # send to server and extract cacheSize'
+```
+
+## Common monitoring scenarios
+
+### Scenario 1: Low success rate
+
+**Symptoms:**
+- `success_rate` below 90%
+- High `error_count`
+
+**Investigation:**
+1. Check `lastError` in api_details
+2. Review error logs for patterns
+3. Verify API key is valid
+4. Check network connectivity
+5. Review timeout configuration
+
+### Scenario 2: Slow responses
+
+**Symptoms:**
+- Requests timing out
+- High latency
+
+**Investigation:**
+1. Check `uptime_ms` for server stability
+2. Review debug logs for request duration
+3. Monitor cache hits vs misses
+4. Check network latency
+5. Consider increasing timeout
+
+### Scenario 3: High memory usage
+
+**Symptoms:**
+- Server consuming excessive memory
+- Performance degradation over time
+
+**Investigation:**
+1. Check `cacheSize` in api_details
+2. Monitor cache growth rate
+3. Verify cache is evicting old items
+4. Consider reducing cache max size
+
+### Scenario 4: API connectivity issues
+
+**Symptoms:**
+- `api_healthy: false`
+- `hasApiKey: false`
+- Connection errors
+
+**Investigation:**
+1. Verify `XAI_API_KEY` environment variable
+2. Check API key validity at console.x.ai
+3. Test network connectivity to api.x.ai
+4. Review firewall settings
+5. Check for rate limiting (429 errors)
+
+## Integration with monitoring systems
+
+### Prometheus-style metrics
+
+Extract metrics from health_check response:
+
+```bash
+# Example metric extraction
+groksearch_requests_total{status="success"} 147
+groksearch_requests_total{status="error"} 3
+groksearch_uptime_seconds 3600
+groksearch_cache_size 12
+```
+
+### Alerting thresholds
+
+Recommended alert conditions:
+
+- 🚨 **Critical**: `api_healthy: false` or `server_healthy: false`
+- ⚠️ **Warning**: `success_rate` < 90%
+- ⚠️ **Warning**: `error_count` increasing rapidly
+- ℹ️ **Info**: `cacheSize` approaching 100
+
+### Log aggregation
+
+Structured JSON logs integrate easily with:
+
+- **Elasticsearch/Kibana** - Parse JSON logs
+- **Splunk** - Index JSON events
+- **CloudWatch** - Parse structured logs
+- **Datadog** - JSON log ingestion
+- **Grafana Loki** - Label extraction from JSON

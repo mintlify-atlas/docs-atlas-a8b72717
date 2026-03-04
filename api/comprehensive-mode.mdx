@@ -1,0 +1,368 @@
+---
+title: Comprehensive mode
+description: Comprehensive mode response structure with detailed analysis fields
+---
+
+Comprehensive mode provides rich, detailed analysis including timelines, direct quotes, multiple perspectives, and verification status. This mode uses approximately 4,000 tokens per request and responses are cached for 30 minutes.
+
+## Response structure
+
+Comprehensive mode includes all basic mode fields plus extensive analysis components.
+
+### Base fields
+
+<ResponseField name="query" type="string" required>
+  The original search query that was executed
+</ResponseField>
+
+<ResponseField name="analysis_mode" type="string" required>
+  Set to `"comprehensive"` for comprehensive mode responses
+</ResponseField>
+
+### Analysis fields
+
+<ResponseField name="comprehensive_analysis" type="string" required>
+  A detailed 500+ word analysis providing deep context, background, and implications. Includes specific details, dates, numbers, and concrete information.
+</ResponseField>
+
+<ResponseField name="key_findings" type="array" required>
+  Array of categorized findings with confidence levels
+  
+  <Expandable title="Key finding object properties">
+    <ResponseField name="category" type="string" required>
+      Finding category: `"main_story"`, `"development"`, `"context"`, or `"impact"`
+    </ResponseField>
+    
+    <ResponseField name="title" type="string" required>
+      Specific finding title
+    </ResponseField>
+    
+    <ResponseField name="content" type="string" required>
+      Detailed explanation with specifics, numbers, and dates
+    </ResponseField>
+    
+    <ResponseField name="sources" type="array" required>
+      Array of source URLs supporting this finding
+    </ResponseField>
+    
+    <ResponseField name="confidence" type="string" required>
+      Confidence level: `"high"`, `"medium"`, or `"low"`
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="timeline" type="array" required>
+  Chronological sequence of events with significance
+  
+  <Expandable title="Timeline event properties">
+    <ResponseField name="date" type="string" required>
+      Event date in YYYY-MM-DD format
+    </ResponseField>
+    
+    <ResponseField name="event" type="string" required>
+      Specific event description
+    </ResponseField>
+    
+    <ResponseField name="source" type="string" required>
+      Source name for this event
+    </ResponseField>
+    
+    <ResponseField name="significance" type="string" required>
+      Why this event matters in the broader context
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="direct_quotes" type="array" required>
+  Array of exact quotes with full attribution
+  
+  <Expandable title="Quote object properties">
+    <ResponseField name="quote" type="string" required>
+      Exact quote from the source
+    </ResponseField>
+    
+    <ResponseField name="speaker" type="string" required>
+      Speaker name and title
+    </ResponseField>
+    
+    <ResponseField name="context" type="string" required>
+      When and where this was said
+    </ResponseField>
+    
+    <ResponseField name="source_url" type="string" required>
+      URL of the source containing the quote
+    </ResponseField>
+    
+    <ResponseField name="significance" type="string" required>
+      Why this quote is important
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="related_context" type="string" required>
+  Historical background, related events, and broader context that helps understand the topic
+</ResponseField>
+
+<ResponseField name="multiple_perspectives" type="array" required>
+  Analysis from different stakeholder viewpoints
+  
+  <Expandable title="Perspective object properties">
+    <ResponseField name="viewpoint" type="string" required>
+      Perspective group (e.g., "Supporters", "Critics", "Experts")
+    </ResponseField>
+    
+    <ResponseField name="content" type="string" required>
+      What this group thinks or says about the topic
+    </ResponseField>
+    
+    <ResponseField name="sources" type="array" required>
+      Array of source URLs for this perspective
+    </ResponseField>
+    
+    <ResponseField name="reasoning" type="string" required>
+      Why this group holds this position
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="implications" type="object" required>
+  Impact analysis covering short-term and long-term effects
+  
+  <Expandable title="Implications object properties">
+    <ResponseField name="short_term" type="string" required>
+      Immediate consequences and effects
+    </ResponseField>
+    
+    <ResponseField name="long_term" type="string" required>
+      Potential long-term impacts and outcomes
+    </ResponseField>
+    
+    <ResponseField name="stakeholders_affected" type="array" required>
+      Array of stakeholder groups affected by this topic
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="verification_status" type="object" required>
+  Fact verification and claim tracking
+  
+  <Expandable title="Verification status properties">
+    <ResponseField name="confirmed_facts" type="array" required>
+      Array of verified information with sources
+    </ResponseField>
+    
+    <ResponseField name="unconfirmed_claims" type="array" required>
+      Array of claims that need verification
+    </ResponseField>
+    
+    <ResponseField name="contradictory_information" type="array" required>
+      Array of conflicting reports or information
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="raw_results" type="array" required>
+  Array of raw search results with relevance scores
+  
+  <Expandable title="Raw result properties">
+    <ResponseField name="title" type="string" required>
+      Source article title
+    </ResponseField>
+    
+    <ResponseField name="snippet" type="string" required>
+      Brief description
+    </ResponseField>
+    
+    <ResponseField name="url" type="string" required>
+      Source URL
+    </ResponseField>
+    
+    <ResponseField name="relevance_score" type="number" required>
+      Relevance score on a 1-10 scale
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="summary" type="string" required>
+  Executive summary of the entire analysis
+</ResponseField>
+
+<ResponseField name="total_results" type="number" required>
+  Total number of raw results in the response
+</ResponseField>
+
+<ResponseField name="search_time" type="string" required>
+  ISO 8601 timestamp of when the search was executed
+</ResponseField>
+
+<ResponseField name="source" type="string" required>
+  Set to `"grok-comprehensive-analysis"` for comprehensive mode responses
+</ResponseField>
+
+<ResponseField name="citations" type="array">
+  Array of citation URLs from all sources
+</ResponseField>
+
+<ResponseField name="citation_metadata" type="array">
+  Array of metadata objects for each citation
+</ResponseField>
+
+## Example response
+
+```json
+{
+  "query": "US Iran conflict 2025",
+  "analysis_mode": "comprehensive",
+  "comprehensive_analysis": "The situation between the United States and Iran in June 2025 represents a complex geopolitical development with multiple dimensions. Following months of diplomatic tensions, recent events have escalated concerns about regional stability. Key developments include diplomatic communications, economic measures, and regional alliance dynamics. The historical context of US-Iran relations provides crucial background for understanding current events, including the 2015 nuclear deal framework and subsequent policy shifts. Current analysis suggests multiple possible trajectories depending on diplomatic engagement success and regional stakeholder responses.",
+  "key_findings": [
+    {
+      "category": "main_story",
+      "title": "Diplomatic Engagement Renewed",
+      "content": "High-level diplomatic channels between Washington and Tehran reopened on June 20, 2025, marking the first direct communication in over 18 months. Senior officials from both nations met in a neutral location to discuss de-escalation measures.",
+      "sources": [
+        "https://example.com/diplomatic-news",
+        "https://news.example.org/iran-us-talks"
+      ],
+      "confidence": "high"
+    },
+    {
+      "category": "development",
+      "title": "Regional Alliance Responses",
+      "content": "Regional allies including Saudi Arabia and Israel have expressed cautious support for diplomatic engagement while maintaining security preparedness. Joint military exercises continue as scheduled.",
+      "sources": [
+        "https://regional-news.example.com/alliance-response"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-06-20",
+      "event": "First direct diplomatic meeting announced",
+      "source": "Reuters",
+      "significance": "This marked the beginning of renewed engagement after a prolonged period of limited communication"
+    },
+    {
+      "date": "2025-06-21",
+      "event": "Joint statement issued on de-escalation framework",
+      "source": "Associated Press",
+      "significance": "First public acknowledgment of mutual interest in reducing tensions"
+    },
+    {
+      "date": "2025-06-23",
+      "event": "Regional stakeholders convene emergency summit",
+      "source": "Al Jazeera",
+      "significance": "Demonstrated broader regional interest in stability and diplomatic resolution"
+    }
+  ],
+  "direct_quotes": [
+    {
+      "quote": "We remain committed to diplomatic solutions while ensuring our national security interests are protected",
+      "speaker": "Secretary of State Jennifer Williams",
+      "context": "During a press conference on June 21, 2025",
+      "source_url": "https://state.gov/press-briefing-062125",
+      "significance": "This statement clarifies the US position on balancing diplomacy with security concerns"
+    },
+    {
+      "quote": "The path to de-escalation requires mutual respect and recognition of legitimate concerns from all parties",
+      "speaker": "Iranian Foreign Minister Ahmad Rahimi",
+      "context": "Statement to Iranian media on June 22, 2025",
+      "source_url": "https://irna.example.ir/statement-062225",
+      "significance": "Indicates Iranian willingness to engage while setting expectations for negotiation framework"
+    }
+  ],
+  "related_context": "US-Iran relations have been characterized by periods of engagement and tension since the 1979 Iranian Revolution. The 2015 Joint Comprehensive Plan of Action (JCPOA) represented a high point in diplomatic engagement, addressing nuclear development concerns. The 2018 US withdrawal from the agreement created renewed tensions. Understanding this historical pattern of negotiation and confrontation is essential for interpreting current developments. Regional dynamics, including the roles of Saudi Arabia, Israel, and other Gulf states, add complexity to bilateral US-Iran interactions.",
+  "multiple_perspectives": [
+    {
+      "viewpoint": "Diplomatic engagement supporters",
+      "content": "Advocates of diplomatic engagement argue that renewed talks represent the best path to regional stability and preventing military escalation. They emphasize the economic and humanitarian benefits of reduced tensions.",
+      "sources": [
+        "https://diplomacy-institute.example.edu/analysis",
+        "https://peace-studies.example.org/iran-us"
+      ],
+      "reasoning": "This group prioritizes conflict prevention and believes diplomatic channels can address core concerns of all parties"
+    },
+    {
+      "viewpoint": "Security hardliners",
+      "content": "Security-focused analysts caution that diplomatic engagement must be accompanied by strong deterrence measures. They advocate for maintaining military readiness and economic pressure alongside talks.",
+      "sources": [
+        "https://security-analysis.example.com/iran-policy"
+      ],
+      "reasoning": "This perspective emphasizes the need for negotiation from a position of strength and skepticism about diplomatic commitments"
+    },
+    {
+      "viewpoint": "Regional stakeholders",
+      "content": "Countries in the region express mixed views, with some welcoming reduced tensions while others worry about being excluded from decisions affecting regional security architecture.",
+      "sources": [
+        "https://regional-perspectives.example.net/gulf-views"
+      ],
+      "reasoning": "Regional powers seek to ensure their interests are represented in any bilateral US-Iran agreements that affect broader regional dynamics"
+    }
+  ],
+  "implications": {
+    "short_term": "Immediate implications include potential reduction in military posturing, economic signals affecting oil markets, and diplomatic activity among regional stakeholders. The next 30-60 days will be critical for establishing whether diplomatic engagement can produce tangible de-escalation measures.",
+    "long_term": "Long-term outcomes could range from a new framework agreement addressing nuclear concerns and regional security to renewed escalation if diplomatic efforts fail. The trajectory will significantly impact regional stability, energy markets, and global geopolitical alignments for years to come.",
+    "stakeholders_affected": [
+      "United States",
+      "Iran",
+      "Israel",
+      "Saudi Arabia",
+      "Gulf Cooperation Council states",
+      "European Union",
+      "Global energy markets"
+    ]
+  },
+  "verification_status": {
+    "confirmed_facts": [
+      "Diplomatic meeting occurred on June 20, 2025 (confirmed by multiple government sources)",
+      "Joint statement was issued on June 21, 2025 (text publicly available)",
+      "Regional summit convened on June 23, 2025 (confirmed by host country)"
+    ],
+    "unconfirmed_claims": [
+      "Specific details of private diplomatic discussions",
+      "Reported preliminary agreement frameworks mentioned in some media",
+      "Claims about military deployment changes"
+    ],
+    "contradictory_information": [
+      "Conflicting reports about the level of officials at the June 20 meeting",
+      "Different characterizations of the tone and substance of discussions",
+      "Varying interpretations of the joint statement's commitments"
+    ]
+  },
+  "raw_results": [
+    {
+      "title": "US and Iran Hold First Direct Talks in 18 Months",
+      "snippet": "Senior officials from both nations met to discuss de-escalation",
+      "url": "https://example.com/diplomatic-news",
+      "relevance_score": 10
+    },
+    {
+      "title": "Regional Allies React to US-Iran Diplomatic Opening",
+      "snippet": "Gulf states express cautious optimism about renewed dialogue",
+      "url": "https://regional-news.example.com/alliance-response",
+      "relevance_score": 9
+    },
+    {
+      "title": "Analysis: Historical Context of US-Iran Relations",
+      "snippet": "Understanding the pattern of engagement and confrontation since 1979",
+      "url": "https://historical-analysis.example.edu/us-iran",
+      "relevance_score": 8
+    }
+  ],
+  "summary": "Renewed US-Iran diplomatic engagement in June 2025 represents a significant development with potential for both de-escalation and continued uncertainty. Multiple stakeholder perspectives, historical context, and verification of confirmed facts versus unconfirmed claims are essential for understanding the situation's complexity and potential trajectories.",
+  "total_results": 3,
+  "search_time": "2025-06-24T12:00:00.000Z",
+  "source": "grok-comprehensive-analysis"
+}
+```
+
+## Usage notes
+
+- Comprehensive analyses are cached for 30 minutes to optimize performance and reduce API costs
+- This mode uses approximately 4,000 tokens per request (double the basic mode)
+- The analysis includes specific extraction of dates, numbers, names, and locations
+- Direct quotes include full attribution with speaker, context, and significance
+- Timeline events are sorted chronologically with significance explanation
+- Multiple perspectives analyze the topic from different stakeholder viewpoints
+- Verification status helps distinguish confirmed facts from unconfirmed claims
+- Best suited for complex topics requiring deep contextual understanding

@@ -1,0 +1,322 @@
+---
+title: Claude Desktop Configuration
+description: Set up the Grok Search MCP Server in Claude Desktop
+---
+
+This guide walks you through configuring the Grok Search MCP Server in Claude Desktop, enabling you to use Grok-powered search capabilities directly in your conversations.
+
+## Configuration File Locations
+
+The Claude Desktop configuration file is located at different paths depending on your operating system:
+
+<Tabs>
+  <Tab title="macOS">
+    ```
+    ~/Library/Application Support/Claude/claude_desktop_config.json
+    ```
+    
+    **Quick open command:**
+    ```bash
+    open -e ~/Library/Application\ Support/Claude/claude_desktop_config.json
+    ```
+  </Tab>
+  
+  <Tab title="Windows">
+    ```
+    %APPDATA%/Claude/claude_desktop_config.json
+    ```
+    
+    **Quick open command:**
+    ```cmd
+    notepad %APPDATA%\Claude\claude_desktop_config.json
+    ```
+  </Tab>
+  
+  <Tab title="Linux">
+    ```
+    ~/.config/Claude/claude_desktop_config.json
+    ```
+    
+    **Quick open command:**
+    ```bash
+    nano ~/.config/Claude/claude_desktop_config.json
+    ```
+  </Tab>
+</Tabs>
+
+## Basic Configuration
+
+Here's the minimal configuration needed to run the Grok Search MCP Server:
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "xai-your-actual-api-key-here"
+      }
+    }
+  }
+}
+```
+
+<Note>
+Replace `xai-your-actual-api-key-here` with your actual xAI API key from [console.x.ai](https://console.x.ai/)
+</Note>
+
+## Complete Configuration Example
+
+For a production setup with custom timeout and retry settings:
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "xai-your-actual-api-key-here",
+        "GROK_TIMEOUT": "45000",
+        "GROK_MAX_RETRIES": "5"
+      }
+    }
+  }
+}
+```
+
+## Step-by-Step Setup
+
+<Steps>
+  <Step title="Obtain xAI API Key">
+    1. Visit [xAI Developer Portal](https://console.x.ai/)
+    2. Create an account or sign in
+    3. Navigate to API Keys section
+    4. Generate a new API key
+    5. Copy the key (format: `xai-...`)
+  </Step>
+  
+  <Step title="Install the Server">
+    Run the installation command in your terminal:
+    
+    ```bash
+    git clone https://github.com/stat-guy/grok-search-mcp.git
+    cd grok-search-mcp
+    npm install -g .
+    ```
+    
+    Or use NPX directly without installation (recommended).
+  </Step>
+  
+  <Step title="Locate Configuration File">
+    Find your Claude Desktop configuration file based on your operating system:
+    
+    - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+    - **Windows:** `%APPDATA%/Claude/claude_desktop_config.json`
+    - **Linux:** `~/.config/Claude/claude_desktop_config.json`
+  </Step>
+  
+  <Step title="Edit Configuration">
+    Open the configuration file in your preferred text editor and add the Grok Search server configuration:
+    
+    ```json
+    {
+      "mcpServers": {
+        "grok-search": {
+          "command": "npx",
+          "args": ["grok-search-mcp"],
+          "env": {
+            "XAI_API_KEY": "your-api-key-here"
+          }
+        }
+      }
+    }
+    ```
+    
+    <Warning>
+    Ensure the JSON is valid. Use a JSON validator if needed.
+    </Warning>
+  </Step>
+  
+  <Step title="Restart Claude Desktop">
+    1. Completely quit Claude Desktop (don't just close the window)
+    2. Restart the application
+    3. Wait for Claude to fully load
+  </Step>
+  
+  <Step title="Verify Installation">
+    In a new conversation, the Grok Search tools should now be available:
+    - `grok_search`
+    - `grok_web_search`
+    - `grok_news_search`
+    - `grok_twitter`
+    - `health_check`
+    
+    Try running a health check to verify connectivity:
+    ```
+    Can you run a health check on the Grok Search server?
+    ```
+  </Step>
+</Steps>
+
+## Multiple Server Configuration
+
+You can configure multiple MCP servers in the same configuration file:
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "your-api-key-here"
+      }
+    },
+    "another-server": {
+      "command": "npx",
+      "args": ["another-mcp-server"],
+      "env": {
+        "API_KEY": "another-api-key"
+      }
+    }
+  }
+}
+```
+
+## Validation
+
+To validate your configuration file's JSON syntax:
+
+**macOS/Linux:**
+```bash
+python -m json.tool ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+**Windows (PowerShell):**
+```powershell
+Get-Content $env:APPDATA\Claude\claude_desktop_config.json | ConvertFrom-Json
+```
+
+## Troubleshooting
+
+### Server Not Appearing
+
+<AccordionGroup>
+  <Accordion title="Claude Desktop not restarted">
+    Make sure you completely quit Claude Desktop (not just close the window) and restart it.
+    
+    **macOS:** Use Cmd+Q or right-click the dock icon and select "Quit"
+    
+    **Windows:** Right-click the system tray icon and select "Exit"
+  </Accordion>
+  
+  <Accordion title="Invalid JSON syntax">
+    Validate your configuration file using a JSON validator. Common issues:
+    - Missing commas between objects
+    - Extra commas at the end of lists
+    - Unmatched quotes or brackets
+    - Comments (JSON doesn't support comments)
+  </Accordion>
+  
+  <Accordion title="Wrong file location">
+    Verify you're editing the correct file for your operating system:
+    
+    ```bash
+    # Verify file exists (macOS/Linux)
+    ls -la ~/Library/Application\ Support/Claude/claude_desktop_config.json
+    
+    # Verify file exists (Windows)
+    dir %APPDATA%\Claude\claude_desktop_config.json
+    ```
+  </Accordion>
+  
+  <Accordion title="NPX not found">
+    Ensure Node.js is installed and NPX is available:
+    
+    ```bash
+    node --version
+    npx --version
+    ```
+    
+    If not installed, download from [nodejs.org](https://nodejs.org/)
+  </Accordion>
+</AccordionGroup>
+
+### API Key Issues
+
+<AccordionGroup>
+  <Accordion title="Invalid API key format">
+    Verify your API key:
+    - Starts with `xai-`
+    - No extra spaces or quotes
+    - Complete key copied from xAI portal
+    
+    Use the `health_check` tool to verify connectivity.
+  </Accordion>
+  
+  <Accordion title="API key not working">
+    1. Verify the key is active in the [xAI Developer Portal](https://console.x.ai/)
+    2. Check for any usage limits or restrictions
+    3. Try generating a new API key
+    4. Ensure your account is in good standing
+  </Accordion>
+</AccordionGroup>
+
+### Configuration Not Applied
+
+If your configuration changes aren't taking effect:
+
+1. **Verify file saved:** Ensure you saved the configuration file after editing
+2. **Check file permissions:** Ensure the file is readable by Claude Desktop
+3. **Restart completely:** Quit and restart Claude Desktop (not just reload)
+4. **Check logs:** Look for error messages in Claude Desktop's logs
+5. **Test NPX directly:** Run `npx grok-search-mcp` in terminal to test the server
+
+## Testing the Configuration
+
+Once configured, test the server with a simple search:
+
+```
+Can you search for "latest AI developments" using the Grok Search server?
+```
+
+Or run a health check:
+
+```
+Please run a health check on the Grok Search MCP server.
+```
+
+A successful health check response should show:
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "uptime_ms": 1234,
+  "total_requests": 0,
+  "error_count": 0,
+  "success_rate": "100.00%",
+  "api_details": {
+    "hasApiKey": true,
+    "cacheSize": 0
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="code" href="/configuration/environment-variables">
+    Learn about all environment variables
+  </Card>
+  <Card title="Advanced Configuration" icon="sliders" href="/configuration/advanced">
+    Explore advanced configuration options
+  </Card>
+  <Card title="Using the Tools" icon="magnifying-glass" href="/quickstart">
+    Start using Grok Search tools
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/guides/troubleshooting">
+    Solve common configuration issues
+  </Card>
+</CardGroup>

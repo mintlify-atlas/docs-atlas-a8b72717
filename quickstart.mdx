@@ -1,80 +1,301 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with Grok Search MCP Server in minutes
 ---
 
-## Get started in three steps
+This guide will help you configure and start using the Grok Search MCP Server with Claude Desktop.
 
-Get your documentation site running locally and make your first customization.
+## Overview
 
-### Step 1: Set up your local environment
+You'll complete these steps:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+1. Get an xAI API key
+2. Configure Claude Desktop
+3. Restart Claude Desktop
+4. Make your first search
+
+## Get your xAI API key
+
+<Steps>
+  <Step title="Visit the xAI Developer Portal">
+    Navigate to [console.x.ai](https://console.x.ai/) in your web browser.
+  </Step>
+  
+  <Step title="Create an account or sign in">
+    If you don't have an account, create one. Otherwise, sign in with your existing credentials.
+  </Step>
+  
+  <Step title="Generate an API key">
+    1. Navigate to the API Keys section
+    2. Click "Create new API key" or similar button
+    3. Give your key a descriptive name (e.g., "Grok MCP Server")
+    4. Copy the generated API key
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    <Warning>
+    The API key format starts with `xai-`. Store it securely - you won't be able to view it again.
+    </Warning>
+  </Step>
+</Steps>
+
+## Configure Claude Desktop
+
+Now configure Claude Desktop to use the Grok Search MCP Server.
+
+<Steps>
+  <Step title="Locate the configuration file">
+    Find your Claude Desktop configuration file based on your operating system:
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    <CodeGroup>
+    ```bash macOS
+    ~/Library/Application Support/Claude/claude_desktop_config.json
+    ```
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```bash Windows
+    %APPDATA%/Claude/claude_desktop_config.json
+    ```
+    
+    ```bash Linux
+    ~/.config/Claude/claude_desktop_config.json
+    ```
+    </CodeGroup>
+    
+    <Note>
+    If the file doesn't exist, create it. Make sure the parent directories exist.
+    </Note>
+  </Step>
+  
+  <Step title="Edit the configuration file">
+    Open the configuration file in your preferred text editor:
+    
+    <CodeGroup>
+    ```bash macOS
+    open -e ~/Library/Application\ Support/Claude/claude_desktop_config.json
+    ```
+    
+    ```bash Windows (PowerShell)
+    notepad $env:APPDATA\Claude\claude_desktop_config.json
+    ```
+    
+    ```bash Linux
+    nano ~/.config/Claude/claude_desktop_config.json
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Add the server configuration">
+    Add the Grok Search MCP Server configuration. Replace `your-api-key-here` with your actual xAI API key:
+    
+    ```json
+    {
+      "mcpServers": {
+        "grok-search": {
+          "command": "npx",
+          "args": ["grok-search-mcp"],
+          "env": {
+            "XAI_API_KEY": "your-api-key-here"
+          }
+        }
+      }
+    }
+    ```
+    
+    <Warning>
+    Ensure the JSON is valid. Missing commas or brackets will prevent Claude Desktop from starting.
+    </Warning>
+    
+    **Advanced configuration** with custom timeout and retry settings:
+    
+    ```json
+    {
+      "mcpServers": {
+        "grok-search": {
+          "command": "npx",
+          "args": ["grok-search-mcp"],
+          "env": {
+            "XAI_API_KEY": "your-api-key-here",
+            "GROK_TIMEOUT": "45000",
+            "GROK_MAX_RETRIES": "5"
+          }
+        }
+      }
+    }
+    ```
+    
+    Environment variables:
+    - `XAI_API_KEY` (required): Your xAI API key
+    - `GROK_TIMEOUT` (optional): Request timeout in milliseconds (default: 30000)
+    - `GROK_MAX_RETRIES` (optional): Maximum retry attempts (default: 3)
+  </Step>
+  
+  <Step title="Save the configuration file">
+    Save the file and ensure there are no syntax errors.
+    
+    **Validate your JSON** (optional):
+    
+    <CodeGroup>
+    ```bash macOS/Linux
+    python -m json.tool ~/Library/Application\ Support/Claude/claude_desktop_config.json
+    ```
+    
+    ```bash Windows (PowerShell)
+    Get-Content $env:APPDATA\Claude\claude_desktop_config.json | ConvertFrom-Json
+    ```
+    </CodeGroup>
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Restart Claude Desktop
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Quit Claude Desktop completely">
+    Make sure Claude Desktop is fully closed (not just minimized):
+    
+    - **macOS**: Press `Cmd+Q` or right-click the dock icon and select "Quit"
+    - **Windows**: Right-click the system tray icon and select "Exit"
+    - **Linux**: Use your system's application quit method
+  </Step>
+  
+  <Step title="Start Claude Desktop">
+    Launch Claude Desktop again. The server will automatically connect on startup.
+  </Step>
+  
+  <Step title="Verify the server is connected">
+    In Claude Desktop, you should see the Grok Search tools available. Look for tools like:
+    - `grok_search`
+    - `grok_web_search`
+    - `grok_news_search`
+    - `grok_twitter`
+    - `health_check`
+    
+    <Note>
+    If you don't see the tools, check the Claude Desktop logs or verify your configuration file.
+    </Note>
+  </Step>
+</Steps>
 
-### Step 3: Go live
+## Make your first search
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+Now you're ready to perform searches using Grok!
+
+<Steps>
+  <Step title="Test with a basic search">
+    In Claude Desktop, ask:
+    
+    > "Search for the latest developments in artificial intelligence"
+    
+    Claude will use the `grok_search` tool to fetch current information.
+  </Step>
+  
+  <Step title="Try a comprehensive analysis">
+    For detailed analysis with timelines and multiple perspectives, ask:
+    
+    > "Give me a comprehensive analysis of recent climate change policy developments"
+    
+    This will use comprehensive mode, providing:
+    - Detailed timeline of events
+    - Direct quotes from sources
+    - Multiple perspectives
+    - Historical context
+    - Implications analysis
+  </Step>
+  
+  <Step title="Search with date filters">
+    For time-specific searches, ask:
+    
+    > "Search for news about quantum computing breakthroughs from January 2025 to March 2025"
+    
+    The server will filter results to the specified date range.
+  </Step>
+  
+  <Step title="Check server health">
+    Verify the server is working properly:
+    
+    > "Check the health status of the Grok search server"
+    
+    This returns diagnostic information including:
+    - Server health status
+    - API connectivity
+    - Request statistics
+    - Cache size
+    - Success rate
+  </Step>
+</Steps>
+
+## Example searches
+
+Here are some example queries to try:
+
+### Web search
+```
+Search the web for information about the James Webb Space Telescope discoveries
+```
+
+### News search
+```
+Find recent news about developments in renewable energy technology
+```
+
+### Twitter search
+```
+Search Twitter for posts about AI developments from @OpenAI and @AnthropicAI
+```
+
+### Comprehensive analysis
+```
+Provide a comprehensive analysis of the 2024 US presidential election results,
+including timeline, key events, and multiple perspectives
+```
+
+### Date-filtered search
+```
+Search for news about cryptocurrency regulations from 2025-01-01 to 2025-03-01
+```
+
+## Troubleshooting
+
+### Server not appearing in Claude Desktop
+
+1. Verify your configuration file has valid JSON syntax
+2. Check that Claude Desktop was completely restarted
+3. Ensure the `XAI_API_KEY` is set correctly
+4. Check Claude Desktop logs for error messages
+
+### API key errors
+
+**Error**: "API service is not healthy - missing XAI_API_KEY"
+
+**Solution**:
+1. Verify the API key is correctly set in `claude_desktop_config.json`
+2. Ensure there are no extra spaces or quotes around the key
+3. Confirm the key starts with `xai-`
+
+### Timeout errors
+
+**Error**: "Request timeout after 30000ms"
+
+**Solution**:
+1. Increase the `GROK_TIMEOUT` environment variable to `45000` or higher
+2. Check your internet connection
+3. Try using basic mode instead of comprehensive mode for faster responses
+
+### No results returned
+
+**Possible causes**:
+1. Query may be too specific or too broad
+2. Date range may be too narrow
+3. Topic may have limited online coverage
+
+**Solution**: Try rephrasing the query or adjusting date filters
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Now that you're up and running, explore the full capabilities:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Tools reference" icon="wrench" href="/tools/overview">
+    Learn about all available search tools and parameters
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/environment-variables">
+    Advanced configuration options and environment variables
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

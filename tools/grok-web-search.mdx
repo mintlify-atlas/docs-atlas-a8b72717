@@ -1,0 +1,325 @@
+---
+title: grok-web-search
+description: Search general web content including articles, blogs, and informational pages
+---
+
+The `grok_web_search` tool is optimized for searching general web content including articles, blogs, documentation, and informational pages. It automatically uses web-specific search sources.
+
+## When to use
+
+Use `grok_web_search` when you need to:
+
+- Search for general web content and informational pages
+- Find tutorials, guides, and documentation
+- Research topics with evergreen content
+- Get factual information from web sources
+- Search blogs, articles, and informational websites
+
+For other types of searches:
+- Use [`grok_news_search`](/tools/grok-news-search) for current events and news
+- Use [`grok_twitter`](/tools/grok-twitter) for social media content
+- Use [`grok_search`](/tools/grok-search) with `search_type` for flexible search types
+
+## Parameters
+
+<ParamField path="query" type="string" required>
+  The web search query to execute.
+  
+  - **Length**: 1-1000 characters
+  - **Validation**: Automatically sanitized to remove control characters
+  - **Example**: "how to implement OAuth 2.0 authentication"
+</ParamField>
+
+<ParamField path="analysis_mode" type="string" default="basic">
+  Controls the depth and detail of the analysis.
+  
+  - **Options**: "basic", "comprehensive"
+  - **Default**: "basic"
+  - **basic**: Returns simple search results with titles, snippets, and URLs
+  - **comprehensive**: Provides detailed analysis with timelines, quotes, multiple perspectives, and context
+</ParamField>
+
+<ParamField path="max_results" type="number" default={10}>
+  Maximum number of search results to return.
+  
+  - **Range**: 1-20
+  - **Default**: 10
+  - **Note**: Actual results may be fewer if insufficient matches are found
+</ParamField>
+
+<ParamField path="from_date" type="string">
+  Optional start date for filtering search results.
+  
+  - **Format**: ISO8601 date (YYYY-MM-DD)
+  - **Example**: "2025-01-01"
+  - **Validation**: Must be a valid date and before or equal to `to_date`
+  - **Effect**: Limits search to content published from this date onwards
+</ParamField>
+
+<ParamField path="to_date" type="string">
+  Optional end date for filtering search results.
+  
+  - **Format**: ISO8601 date (YYYY-MM-DD)
+  - **Example**: "2025-12-31"
+  - **Validation**: Must be a valid date and after or equal to `from_date`
+  - **Effect**: Limits search to content published up to this date
+</ParamField>
+
+## Usage examples
+
+### Basic web search
+
+Simple search for informational content:
+
+```json
+{
+  "query": "best practices for React hooks"
+}
+```
+
+### Technical documentation search
+
+Find specific technical information:
+
+```json
+{
+  "query": "TypeScript generics constraints tutorial",
+  "max_results": 5
+}
+```
+
+### Comprehensive analysis
+
+Get detailed analysis of a topic:
+
+```json
+{
+  "query": "cloud computing architecture patterns",
+  "analysis_mode": "comprehensive",
+  "max_results": 10
+}
+```
+
+### Recent content only
+
+Search for recently published content:
+
+```json
+{
+  "query": "Next.js 15 new features",
+  "from_date": "2025-01-01"
+}
+```
+
+### Historical content
+
+Find content from a specific time period:
+
+```json
+{
+  "query": "JavaScript ES6 features introduction",
+  "from_date": "2015-01-01",
+  "to_date": "2016-12-31"
+}
+```
+
+## Response format
+
+The response format depends on the `analysis_mode` parameter:
+
+### Basic mode response
+
+```json
+{
+  "query": "best practices for React hooks",
+  "analysis_mode": "basic",
+  "results": [
+    {
+      "title": "React Hooks Best Practices Guide",
+      "snippet": "Learn the best practices for using React hooks effectively...",
+      "url": "https://example.com/react-hooks-guide",
+      "source": "Developer Blog",
+      "published_date": "2025-03-15",
+      "citation_url": "https://example.com/react-hooks-guide",
+      "citation_index": 0
+    }
+  ],
+  "citations": ["https://example.com/react-hooks-guide"],
+  "summary": "Search results for React hooks best practices",
+  "total_results": 5,
+  "search_time": "2025-06-24T12:00:00Z",
+  "source": "grok-live-search"
+}
+```
+
+### Comprehensive mode response
+
+```json
+{
+  "query": "cloud computing architecture patterns",
+  "analysis_mode": "comprehensive",
+  "comprehensive_analysis": "Cloud computing architecture has evolved significantly...",
+  "key_findings": [
+    {
+      "category": "main_story",
+      "title": "Microservices Architecture",
+      "content": "Detailed explanation of microservices patterns...",
+      "sources": ["https://example.com/microservices"],
+      "confidence": "high"
+    }
+  ],
+  "related_context": "Historical development of cloud architectures...",
+  "multiple_perspectives": [
+    {
+      "viewpoint": "Enterprise architects",
+      "content": "Focus on scalability and reliability...",
+      "sources": ["https://example.com/enterprise"],
+      "reasoning": "Business continuity requirements"
+    }
+  ],
+  "summary": "Comprehensive analysis of cloud architecture patterns",
+  "total_results": 10
+}
+```
+
+See [Response formats](/api/response-formats) for complete specifications.
+
+## Tips and best practices
+
+### Query optimization for web search
+
+- **Be specific**: "Python asyncio tutorial for beginners" vs "Python tutorial"
+- **Include technology versions**: "Vue 3 composition API" vs "Vue tutorial"
+- **Use technical terms**: "OAuth 2.0 PKCE flow" vs "secure login"
+- **Specify context**: "Node.js performance optimization production" vs "Node.js performance"
+
+### When to use comprehensive mode
+
+Comprehensive mode is ideal for:
+
+- Understanding complex technical concepts
+- Researching architectural decisions
+- Comparing multiple approaches or technologies
+- Getting historical context and evolution of topics
+- Analyzing best practices with multiple perspectives
+
+### Date filtering strategies
+
+- **Current best practices**: Use `from_date` with recent date (e.g., last year)
+- **Historical research**: Use both dates to focus on specific time periods
+- **Evergreen content**: Omit date filters for timeless information
+- **Technology releases**: Filter around release dates for version-specific info
+
+### Performance optimization
+
+- Start with basic mode for quick verification
+- Use `max_results: 5` for initial exploration
+- Increase to 10-15 for comprehensive research
+- Comprehensive analyses are cached for 30 minutes
+
+### Content quality
+
+To get higher quality results:
+
+- Use precise technical terminology
+- Include relevant keywords and context
+- Specify frameworks/libraries by version when relevant
+- Try different phrasings if initial results aren't satisfactory
+
+## Common use cases
+
+### Technical documentation
+
+```json
+{
+  "query": "FastAPI dependency injection system documentation",
+  "max_results": 5
+}
+```
+
+### Best practices research
+
+```json
+{
+  "query": "REST API versioning strategies",
+  "analysis_mode": "comprehensive",
+  "max_results": 10
+}
+```
+
+### Tutorial discovery
+
+```json
+{
+  "query": "Kubernetes StatefulSets tutorial examples",
+  "max_results": 8
+}
+```
+
+### Framework comparison
+
+```json
+{
+  "query": "React vs Vue performance comparison 2025",
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-01-01"
+}
+```
+
+### Problem solving
+
+```json
+{
+  "query": "fix CORS errors in Express.js middleware",
+  "max_results": 5
+}
+```
+
+## Error handling
+
+Common errors and solutions:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "Search query must be a non-empty string" | Empty or invalid query | Provide a valid string query |
+| "Search query too long (max 1000 characters)" | Query exceeds limit | Shorten the query |
+| "from_date must be in ISO8601 format" | Invalid date format | Use YYYY-MM-DD format |
+| "from_date must be before or equal to to_date" | Invalid date range | Ensure from_date ≤ to_date |
+| "API service is not healthy" | Missing API key | Set XAI_API_KEY environment variable |
+| "Request timeout after 30000ms" | Query too complex | Try basic mode or reduce max_results |
+
+See [Error handling](/guides/error-handling) for complete error reference.
+
+## Search source details
+
+The `grok_web_search` tool uses the following search configuration:
+
+```javascript
+sources: [{"type": "web"}]
+```
+
+This focuses the search on:
+- General web content
+- Articles and blog posts
+- Documentation and guides
+- Informational websites
+- Technical resources
+
+**Excluded**: News articles, social media posts (use dedicated tools for these)
+
+## Related tools
+
+<CardGroup cols={2}>
+  <Card title="grok-search" icon="magnifying-glass" href="/tools/grok-search">
+    Universal search with configurable types
+  </Card>
+  <Card title="grok-news-search" icon="newspaper" href="/tools/grok-news-search">
+    Dedicated news and current events search
+  </Card>
+  <Card title="grok-twitter" icon="x-twitter" href="/tools/grok-twitter">
+    Social media content search
+  </Card>
+  <Card title="Response formats" icon="brackets-curly" href="/api/response-formats">
+    Complete response specifications
+  </Card>
+</CardGroup>

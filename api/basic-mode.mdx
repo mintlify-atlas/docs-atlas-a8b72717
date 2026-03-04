@@ -1,0 +1,189 @@
+---
+title: Basic mode
+description: Basic mode response structure and field documentation
+---
+
+Basic mode returns traditional search results optimized for speed and token efficiency. This mode uses approximately 2,000 tokens per request.
+
+## Response structure
+
+<ResponseField name="query" type="string" required>
+  The original search query that was executed
+</ResponseField>
+
+<ResponseField name="analysis_mode" type="string" required>
+  Set to `"basic"` for basic mode responses
+</ResponseField>
+
+<ResponseField name="results" type="array" required>
+  Array of search result objects
+  
+  <Expandable title="Result object properties">
+    <ResponseField name="title" type="string" required>
+      Article title or tweet content preview
+    </ResponseField>
+    
+    <ResponseField name="snippet" type="string" required>
+      Brief summary or full tweet text (max 280 characters for tweets)
+    </ResponseField>
+    
+    <ResponseField name="url" type="string" required>
+      Source URL or tweet URL
+    </ResponseField>
+    
+    <ResponseField name="source" type="string" required>
+      Source name or Twitter handle
+    </ResponseField>
+    
+    <ResponseField name="published_date" type="string" required>
+      Publication date in YYYY-MM-DD format
+    </ResponseField>
+    
+    <ResponseField name="author" type="string">
+      Author name or Twitter handle (for tweets)
+    </ResponseField>
+    
+    <ResponseField name="citation_url" type="string">
+      The citation URL from the citations array
+    </ResponseField>
+    
+    <ResponseField name="citation_index" type="number">
+      Index of the citation in the citations array
+    </ResponseField>
+    
+    <ResponseField name="citation_metadata" type="object">
+      Metadata about the citation URL
+      
+      <Expandable title="Citation metadata properties">
+        <ResponseField name="index" type="number">
+          Index in the citations array
+        </ResponseField>
+        
+        <ResponseField name="url" type="string">
+          The citation URL
+        </ResponseField>
+        
+        <ResponseField name="domain" type="string">
+          Domain name extracted from the URL
+        </ResponseField>
+        
+        <ResponseField name="protocol" type="string">
+          URL protocol (e.g., "https:" or "http:")
+        </ResponseField>
+        
+        <ResponseField name="is_secure" type="boolean">
+          Whether the URL uses HTTPS
+        </ResponseField>
+        
+        <ResponseField name="path" type="string">
+          URL path component
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="citations" type="array" required>
+  Array of citation URL strings referenced in the search results
+</ResponseField>
+
+<ResponseField name="citation_metadata" type="array" required>
+  Array of metadata objects for each citation, following the same structure as `citation_metadata` in individual results
+</ResponseField>
+
+<ResponseField name="summary" type="string" required>
+  Brief overview of the search findings
+</ResponseField>
+
+<ResponseField name="total_results" type="number" required>
+  Total number of results returned in the response
+</ResponseField>
+
+<ResponseField name="search_time" type="string" required>
+  ISO 8601 timestamp indicating when the search was executed
+</ResponseField>
+
+<ResponseField name="source" type="string" required>
+  Set to `"grok-live-search"` for basic mode responses
+</ResponseField>
+
+## Example response
+
+```json
+{
+  "query": "latest AI developments",
+  "analysis_mode": "basic",
+  "results": [
+    {
+      "title": "New AI Model Breaks Performance Records",
+      "snippet": "Researchers at leading tech company announce breakthrough in artificial intelligence capabilities...",
+      "url": "https://example.com/ai-breakthrough",
+      "source": "TechNews",
+      "published_date": "2025-06-24",
+      "author": "Jane Smith",
+      "citation_url": "https://example.com/ai-breakthrough",
+      "citation_index": 0,
+      "citation_metadata": {
+        "index": 0,
+        "url": "https://example.com/ai-breakthrough",
+        "domain": "example.com",
+        "protocol": "https:",
+        "is_secure": true,
+        "path": "/ai-breakthrough"
+      }
+    },
+    {
+      "title": "Industry Leaders Discuss AI Ethics",
+      "snippet": "Panel of experts convenes to address the ethical implications of advanced AI systems...",
+      "url": "https://news.example.org/ai-ethics-panel",
+      "source": "NewsOrg",
+      "published_date": "2025-06-23",
+      "author": "John Doe",
+      "citation_url": "https://news.example.org/ai-ethics-panel",
+      "citation_index": 1,
+      "citation_metadata": {
+        "index": 1,
+        "url": "https://news.example.org/ai-ethics-panel",
+        "domain": "news.example.org",
+        "protocol": "https:",
+        "is_secure": true,
+        "path": "/ai-ethics-panel"
+      }
+    }
+  ],
+  "citations": [
+    "https://example.com/ai-breakthrough",
+    "https://news.example.org/ai-ethics-panel"
+  ],
+  "citation_metadata": [
+    {
+      "index": 0,
+      "url": "https://example.com/ai-breakthrough",
+      "domain": "example.com",
+      "protocol": "https:",
+      "is_secure": true,
+      "path": "/ai-breakthrough"
+    },
+    {
+      "index": 1,
+      "url": "https://news.example.org/ai-ethics-panel",
+      "domain": "news.example.org",
+      "protocol": "https:",
+      "is_secure": true,
+      "path": "/ai-ethics-panel"
+    }
+  ],
+  "summary": "Recent developments in AI show significant progress in model capabilities and growing attention to ethical considerations",
+  "total_results": 2,
+  "search_time": "2025-06-24T12:00:00.000Z",
+  "source": "grok-live-search"
+}
+```
+
+## Usage notes
+
+- Basic mode responses are not cached and always return fresh results
+- The `results` array is limited by the `max_results` parameter (1-20, default: 10)
+- Citation URLs are automatically mapped to results when available
+- Published dates default to the current date if not available from the source
+- Basic mode is ideal for quick lookups and scenarios where detailed analysis is not required

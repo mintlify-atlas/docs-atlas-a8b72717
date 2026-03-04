@@ -1,0 +1,501 @@
+---
+title: grok-twitter
+description: Search Twitter/X posts with sentiment analysis and social media insights
+---
+
+The `grok_twitter` tool searches Twitter/X posts using Grok's X search capabilities. It can optionally filter by specific handles and provides social media trend and sentiment analysis in comprehensive mode.
+
+## When to use
+
+Use `grok_twitter` when you need to:
+
+- Search Twitter/X posts and tweets
+- Track social media sentiment on topics
+- Monitor specific Twitter accounts
+- Analyze trending topics and viral content
+- Get public opinion and reactions
+- Find influencer perspectives
+
+For other types of searches:
+- Use [`grok_news_search`](/tools/grok-news-search) for news articles
+- Use [`grok_web_search`](/tools/grok-web-search) for general web content
+- Use [`grok_search`](/tools/grok-search) with `search_type: "general"` for mixed sources
+
+## Parameters
+
+<ParamField path="query" type="string" required>
+  The search query to find tweets/posts about.
+  
+  - **Length**: 1-1000 characters
+  - **Validation**: Automatically sanitized to remove control characters
+  - **Example**: "thoughts on GPT-5 announcement"
+</ParamField>
+
+<ParamField path="handles" type="array">
+  Optional list of Twitter handles to search from.
+  
+  - **Type**: Array of strings
+  - **Format**: Handles without @ symbol (e.g., ["elonmusk", "OpenAI"])
+  - **Example**: ["elonmusk", "sama", "AnthropicAI"]
+  - **Note**: When provided, only searches posts from these accounts
+</ParamField>
+
+<ParamField path="analysis_mode" type="string" default="basic">
+  Controls the depth and detail of the analysis.
+  
+  - **Options**: "basic", "comprehensive"
+  - **Default**: "basic"
+  - **basic**: Returns simple search results with tweet content and metadata
+  - **comprehensive**: Provides social media analysis including sentiment, trends, and influencer perspectives
+</ParamField>
+
+<ParamField path="max_results" type="number" default={10}>
+  Maximum number of tweet results to return.
+  
+  - **Range**: 1-20
+  - **Default**: 10
+  - **Note**: Actual results may be fewer if insufficient matches are found
+</ParamField>
+
+<ParamField path="from_date" type="string">
+  Optional start date for filtering tweets.
+  
+  - **Format**: ISO8601 date (YYYY-MM-DD)
+  - **Example**: "2025-06-01"
+  - **Validation**: Must be a valid date and before or equal to `to_date`
+  - **Effect**: Limits search to tweets posted from this date onwards
+</ParamField>
+
+<ParamField path="to_date" type="string">
+  Optional end date for filtering tweets.
+  
+  - **Format**: ISO8601 date (YYYY-MM-DD)
+  - **Example**: "2025-06-30"
+  - **Validation**: Must be a valid date and after or equal to `from_date`
+  - **Effect**: Limits search to tweets posted up to this date
+</ParamField>
+
+## Usage examples
+
+### Basic Twitter search
+
+Search for tweets about a topic:
+
+```json
+{
+  "query": "artificial intelligence safety"
+}
+```
+
+### Search specific accounts
+
+Find tweets from specific handles:
+
+```json
+{
+  "query": "AI developments",
+  "handles": ["elonmusk", "sama", "AnthropicAI"]
+}
+```
+
+### Comprehensive sentiment analysis
+
+Get detailed social media analysis:
+
+```json
+{
+  "query": "new iPhone launch reactions",
+  "analysis_mode": "comprehensive",
+  "max_results": 15
+}
+```
+
+### Recent tweets only
+
+Search for very recent posts:
+
+```json
+{
+  "query": "tech conference live",
+  "from_date": "2025-06-24",
+  "max_results": 10
+}
+```
+
+### Track influencer opinions
+
+Monitor specific accounts over time:
+
+```json
+{
+  "query": "climate policy",
+  "handles": ["GretaThunberg", "BillGates"],
+  "from_date": "2025-06-01",
+  "to_date": "2025-06-24",
+  "analysis_mode": "comprehensive"
+}
+```
+
+### Event hashtag analysis
+
+```json
+{
+  "query": "#TechSummit2025",
+  "from_date": "2025-06-20",
+  "to_date": "2025-06-24",
+  "analysis_mode": "comprehensive",
+  "max_results": 20
+}
+```
+
+## Response format
+
+### Basic mode response
+
+```json
+{
+  "query": "artificial intelligence safety",
+  "analysis_mode": "basic",
+  "results": [
+    {
+      "title": "Tweet from @elonmusk",
+      "snippet": "AI safety should be our top priority. We need robust frameworks...",
+      "url": "https://twitter.com/elonmusk/status/123456789",
+      "source": "Twitter",
+      "published_date": "2025-06-23",
+      "author": "@elonmusk",
+      "citation_url": "https://twitter.com/elonmusk/status/123456789",
+      "citation_index": 0
+    }
+  ],
+  "citations": ["https://twitter.com/elonmusk/status/123456789"],
+  "summary": "Recent tweets discussing AI safety",
+  "total_results": 10,
+  "search_time": "2025-06-24T12:00:00Z",
+  "source": "grok-live-search"
+}
+```
+
+### Comprehensive mode response
+
+```json
+{
+  "query": "new iPhone launch reactions",
+  "analysis_mode": "comprehensive",
+  "comprehensive_analysis": "The social media reaction to the new iPhone launch has been mixed, with significant discussion centered around...",
+  "key_findings": [
+    {
+      "category": "main_story",
+      "title": "Overall Positive Sentiment",
+      "content": "Majority of tweets express excitement about new features, particularly camera improvements",
+      "sources": ["https://twitter.com/user1/status/123"],
+      "confidence": "high"
+    },
+    {
+      "category": "context",
+      "title": "Price Concerns",
+      "content": "Significant discussion about pricing, with many users expressing concerns about affordability",
+      "sources": ["https://twitter.com/user2/status/456"],
+      "confidence": "high"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-06-20",
+      "event": "Initial announcement generates viral tweets",
+      "source": "Twitter trends",
+      "significance": "#iPhone16 reaches #1 trending topic"
+    },
+    {
+      "date": "2025-06-21",
+      "event": "Tech influencers post detailed reactions",
+      "source": "Tech Twitter",
+      "significance": "Shift from hype to detailed analysis"
+    }
+  ],
+  "direct_quotes": [
+    {
+      "quote": "This is the most impressive camera system I've ever seen on a phone",
+      "speaker": "@techreviewer (Tech Reviewer)",
+      "context": "Posted June 20, 2025, 2:30 PM",
+      "source_url": "https://twitter.com/techreviewer/status/123",
+      "significance": "Influential reviewer with 2M followers"
+    }
+  ],
+  "multiple_perspectives": [
+    {
+      "viewpoint": "Apple Enthusiasts",
+      "content": "Highly positive reactions focusing on innovation and design improvements",
+      "sources": ["https://twitter.com/appleinsider/status/789"],
+      "reasoning": "Brand loyalty and excitement for new features"
+    },
+    {
+      "viewpoint": "Android Users",
+      "content": "Mixed reactions, some impressed by features, others pointing to comparable Android devices",
+      "sources": ["https://twitter.com/androidcentral/status/101"],
+      "reasoning": "Platform comparison and feature parity discussions"
+    },
+    {
+      "viewpoint": "Budget-Conscious Consumers",
+      "content": "Concerns about high pricing and value proposition",
+      "sources": ["https://twitter.com/user3/status/112"],
+      "reasoning": "Economic considerations and affordability"
+    }
+  ],
+  "implications": {
+    "short_term": "High pre-order demand expected, trending topics dominating tech Twitter",
+    "long_term": "Potential market share impact, influence on Android competitors' strategies",
+    "stakeholders_affected": ["Apple shareholders", "Consumers", "Competitors", "App developers"]
+  },
+  "summary": "Comprehensive social media analysis of iPhone launch reactions",
+  "total_results": 15
+}
+```
+
+See [Response formats](/api/response-formats) for complete specifications.
+
+## Tips and best practices
+
+### Query optimization for Twitter
+
+- **Use hashtags**: "#TechConf2025" or "#ClimateAction"
+- **Include context**: "thoughts on AI regulation" vs "AI"
+- **Brand mentions**: "@OpenAI new model" or "ChatGPT updates"
+- **Current events**: "breaking news Silicon Valley"
+
+### Handle format
+
+**Important**: Provide handles **without** the @ symbol:
+
+✅ **Correct**:
+```json
+{
+  "handles": ["elonmusk", "sama", "OpenAI"]
+}
+```
+
+❌ **Incorrect**:
+```json
+{
+  "handles": ["@elonmusk", "@sama", "@OpenAI"]
+}
+```
+
+### When to use comprehensive mode
+
+Comprehensive mode is ideal for:
+
+- **Sentiment analysis**: Understanding public opinion
+- **Trend analysis**: Identifying viral content and patterns
+- **Influencer tracking**: Monitoring key voices in a discussion
+- **Event coverage**: Analyzing social media during events
+- **Brand monitoring**: Understanding brand perception
+- **Crisis communication**: Tracking reactions to announcements
+
+### Date filtering strategies
+
+#### Real-time monitoring (last few hours)
+```json
+{
+  "from_date": "2025-06-24"
+}
+```
+
+#### Event tracking (specific days)
+```json
+{
+  "from_date": "2025-06-20",
+  "to_date": "2025-06-24"
+}
+```
+
+#### Historical analysis
+```json
+{
+  "from_date": "2025-01-01",
+  "to_date": "2025-03-31"
+}
+```
+
+### Performance optimization
+
+- **Basic mode**: Faster for simple tweet retrieval
+- **Comprehensive mode**: Best for sentiment and trend analysis (cached 30 minutes)
+- **Specific handles**: Reduces search scope, improves speed
+- **Date ranges**: Narrows results, improves relevance
+
+### Understanding Twitter results
+
+In results:
+- **snippet**: Contains the full tweet text (max 280 characters for tweets)
+- **author**: Twitter handle of the poster
+- **url**: Direct link to the tweet
+- **published_date**: When the tweet was posted
+- **source**: Will be "Twitter" or handle name
+
+## Common use cases
+
+### Brand monitoring
+
+```json
+{
+  "query": "thoughts on Tesla Cybertruck",
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-01"
+}
+```
+
+### Influencer tracking
+
+```json
+{
+  "query": "AI safety",
+  "handles": ["ylecun", "AndrewYNg", "fchollet"],
+  "analysis_mode": "comprehensive"
+}
+```
+
+### Event hashtag monitoring
+
+```json
+{
+  "query": "#WWDC2025",
+  "from_date": "2025-06-10",
+  "to_date": "2025-06-14",
+  "max_results": 20
+}
+```
+
+### Product launch reactions
+
+```json
+{
+  "query": "Pixel 10 reviews",
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-20"
+}
+```
+
+### Crisis monitoring
+
+```json
+{
+  "query": "service outage AWS",
+  "from_date": "2025-06-24",
+  "max_results": 15
+}
+```
+
+### Tech community sentiment
+
+```json
+{
+  "query": "developer experience tools",
+  "handles": ["vercel", "github", "gitlab"],
+  "analysis_mode": "comprehensive"
+}
+```
+
+## Error handling
+
+Common errors and solutions:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "Search query must be a non-empty string" | Empty or invalid query | Provide a valid string query |
+| "Search query too long (max 1000 characters)" | Query exceeds limit | Shorten the query |
+| "handles must be an array" | Invalid handles format | Use array of strings without @ |
+| "from_date must be in ISO8601 format" | Invalid date format | Use YYYY-MM-DD format |
+| "from_date must be before or equal to to_date" | Invalid date range | Ensure from_date ≤ to_date |
+| "API service is not healthy" | Missing API key | Set XAI_API_KEY environment variable |
+
+See [Error handling](/guides/error-handling) for complete error reference.
+
+## Search source details
+
+The `grok_twitter` tool uses the following search configuration:
+
+```javascript
+// Without handles filter
+sources: [{"type": "x"}]
+
+// With handles filter
+sources: [{"type": "x", "x_handles": ["handle1", "handle2"]}]
+```
+
+This focuses the search on:
+- Twitter/X posts and tweets
+- Replies and threads (when relevant)
+- Retweets from specified accounts (if handles provided)
+- Recent and viral content
+
+## Advanced usage
+
+### Combining multiple filters
+
+```json
+{
+  "query": "#AI safety concerns",
+  "handles": ["ylecun", "GaryMarcus", "ylecun"],
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-01",
+  "max_results": 15
+}
+```
+
+### Tracking conversation evolution
+
+Run sequential searches to track how discussion evolves:
+
+```json
+// Week 1
+{
+  "query": "GPT-5 announcement",
+  "from_date": "2025-06-01",
+  "to_date": "2025-06-07",
+  "analysis_mode": "comprehensive"
+}
+
+// Week 2
+{
+  "query": "GPT-5 announcement",
+  "from_date": "2025-06-08",
+  "to_date": "2025-06-14",
+  "analysis_mode": "comprehensive"
+}
+```
+
+### Comparing perspectives
+
+Search different handle groups separately:
+
+```json
+// Tech CEOs
+{
+  "query": "AI regulation",
+  "handles": ["elonmusk", "satyanadella", "sundarpichai"]
+}
+
+// AI Researchers
+{
+  "query": "AI regulation",
+  "handles": ["ylecun", "AndrewYNg", "fchollet"]
+}
+```
+
+## Related tools
+
+<CardGroup cols={2}>
+  <Card title="grok-news-search" icon="newspaper" href="/tools/grok-news-search">
+    Search news coverage of trending topics
+  </Card>
+  <Card title="grok-search" icon="magnifying-glass" href="/tools/grok-search">
+    Universal search with mixed sources
+  </Card>
+  <Card title="grok-web-search" icon="globe" href="/tools/grok-web-search">
+    General web content search
+  </Card>
+  <Card title="Response formats" icon="brackets-curly" href="/api/response-formats">
+    Complete response specifications
+  </Card>
+</CardGroup>

@@ -1,0 +1,299 @@
+---
+title: grok-search
+description: Universal search tool with configurable search types and analysis modes
+---
+
+The `grok_search` tool is the most versatile search tool in the Grok Search MCP server. It supports multiple search types (web, news, general) and both basic and comprehensive analysis modes.
+
+## When to use
+
+Use `grok_search` when you need:
+
+- Flexibility to choose between different search types
+- Control over whether to search web, news, or both
+- A single tool that can handle various search scenarios
+- The ability to switch between basic and comprehensive analysis
+
+For specialized searches, consider using the dedicated tools:
+- [`grok_web_search`](/tools/grok-web-search) for web content only
+- [`grok_news_search`](/tools/grok-news-search) for news only
+- [`grok_twitter`](/tools/grok-twitter) for Twitter/X posts
+
+## Parameters
+
+<ParamField path="query" type="string" required>
+  The search query to execute.
+  
+  - **Length**: 1-1000 characters
+  - **Validation**: Automatically sanitized to remove control characters
+  - **Example**: "latest AI developments in healthcare"
+</ParamField>
+
+<ParamField path="search_type" type="string" default="web">
+  Type of search to perform.
+  
+  - **Options**: "web", "news", "general"
+  - **Default**: "web"
+  - **web**: Searches general web content (articles, blogs, informational pages)
+  - **news**: Searches news articles and current events
+  - **general**: Searches across all sources (web, news, and X/Twitter)
+</ParamField>
+
+<ParamField path="analysis_mode" type="string" default="basic">
+  Controls the depth and detail of the analysis.
+  
+  - **Options**: "basic", "comprehensive"
+  - **Default**: "basic"
+  - **basic**: Returns simple search results with titles, snippets, and URLs
+  - **comprehensive**: Provides detailed analysis with timelines, quotes, multiple perspectives, and context (500+ word analysis)
+</ParamField>
+
+<ParamField path="max_results" type="number" default={10}>
+  Maximum number of search results to return.
+  
+  - **Range**: 1-20
+  - **Default**: 10
+  - **Note**: Actual results may be fewer if insufficient matches are found
+</ParamField>
+
+<ParamField path="from_date" type="string">
+  Optional start date for filtering search results.
+  
+  - **Format**: ISO8601 date (YYYY-MM-DD)
+  - **Example**: "2025-01-01"
+  - **Validation**: Must be a valid date and before or equal to `to_date`
+  - **Effect**: Limits search to content published from this date onwards
+</ParamField>
+
+<ParamField path="to_date" type="string">
+  Optional end date for filtering search results.
+  
+  - **Format**: ISO8601 date (YYYY-MM-DD)
+  - **Example**: "2025-12-31"
+  - **Validation**: Must be a valid date and after or equal to `from_date`
+  - **Effect**: Limits search to content published up to this date
+</ParamField>
+
+## Usage examples
+
+### Basic web search
+
+Simple web search for recent information:
+
+```json
+{
+  "query": "latest AI developments",
+  "search_type": "web",
+  "max_results": 5
+}
+```
+
+### News search with date range
+
+Search for news articles within a specific time period:
+
+```json
+{
+  "query": "climate change policy updates",
+  "search_type": "news",
+  "max_results": 10,
+  "from_date": "2025-01-01",
+  "to_date": "2025-06-30"
+}
+```
+
+### Comprehensive analysis
+
+Get detailed analysis with timelines, quotes, and multiple perspectives:
+
+```json
+{
+  "query": "US Iran conflict 2025",
+  "search_type": "news",
+  "analysis_mode": "comprehensive",
+  "max_results": 10,
+  "from_date": "2025-06-20",
+  "to_date": "2025-06-24"
+}
+```
+
+### General search across all sources
+
+Search across web, news, and social media:
+
+```json
+{
+  "query": "artificial general intelligence debate",
+  "search_type": "general",
+  "analysis_mode": "comprehensive",
+  "max_results": 15
+}
+```
+
+### Recent events only
+
+Search for very recent information:
+
+```json
+{
+  "query": "tech company earnings",
+  "search_type": "news",
+  "from_date": "2025-06-01"
+}
+```
+
+## Response format
+
+The response format depends on the `analysis_mode` parameter:
+
+### Basic mode response
+
+Returns structured search results:
+
+```json
+{
+  "query": "latest AI developments",
+  "analysis_mode": "basic",
+  "results": [
+    {
+      "title": "Article title",
+      "snippet": "Brief description or excerpt",
+      "url": "https://example.com/article",
+      "source": "Source name",
+      "published_date": "2025-06-23",
+      "citation_url": "https://example.com/article",
+      "citation_index": 0
+    }
+  ],
+  "citations": ["https://example.com/article"],
+  "summary": "Brief overview of findings",
+  "total_results": 5,
+  "search_time": "2025-06-24T12:00:00Z",
+  "source": "grok-live-search"
+}
+```
+
+### Comprehensive mode response
+
+Returns detailed analysis with extensive context:
+
+```json
+{
+  "query": "US Iran conflict 2025",
+  "analysis_mode": "comprehensive",
+  "comprehensive_analysis": "Detailed 500+ word analysis...",
+  "key_findings": [
+    {
+      "category": "main_story",
+      "title": "Finding title",
+      "content": "Detailed explanation",
+      "sources": ["url1", "url2"],
+      "confidence": "high"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2025-06-20",
+      "event": "Event description",
+      "source": "Source name",
+      "significance": "Why this matters"
+    }
+  ],
+  "direct_quotes": [
+    {
+      "quote": "Exact quote text",
+      "speaker": "Speaker name and title",
+      "context": "When and where",
+      "source_url": "https://example.com",
+      "significance": "Why this quote matters"
+    }
+  ],
+  "multiple_perspectives": [
+    {
+      "viewpoint": "Group perspective",
+      "content": "What this group thinks",
+      "sources": ["url1"],
+      "reasoning": "Why they hold this position"
+    }
+  ],
+  "implications": {
+    "short_term": "Immediate consequences",
+    "long_term": "Potential long-term impacts",
+    "stakeholders_affected": ["Group 1", "Group 2"]
+  },
+  "verification_status": {
+    "confirmed_facts": ["Verified information"],
+    "unconfirmed_claims": ["Claims needing verification"],
+    "contradictory_information": ["Conflicting reports"]
+  },
+  "summary": "Executive summary",
+  "total_results": 10
+}
+```
+
+See [Response formats](/api/response-formats) for complete specifications.
+
+## Tips and best practices
+
+### Choosing search type
+
+- **web**: Best for general information, tutorials, documentation, and evergreen content
+- **news**: Best for current events, breaking news, and time-sensitive information
+- **general**: Best for comprehensive coverage when you need diverse perspectives
+
+### Choosing analysis mode
+
+- **basic**: Use for quick searches, simple fact-finding, or when speed is important (faster, lower token usage)
+- **comprehensive**: Use for complex topics, research, understanding context and history (cached for 30 minutes)
+
+### Query optimization
+
+- Be specific: "Tesla Model 3 2025 safety features" vs "Tesla safety"
+- Include relevant keywords: "quantum computing breakthroughs 2025"
+- Use natural language: "What are the latest developments in renewable energy?"
+- Avoid overly broad queries: "technology" vs "emerging AI applications in healthcare"
+
+### Date range usage
+
+- Use `from_date` to exclude old information: Search only recent content
+- Use `to_date` for historical analysis: Search up to a specific point in time
+- Combine both for precise time windows: Analyze specific events or periods
+- Leave empty for no date filtering: Get the most relevant results regardless of date
+
+### Performance optimization
+
+- Start with `max_results: 5` to test queries quickly
+- Increase to 10-15 for comprehensive analysis
+- Use basic mode first to verify query quality
+- Cache is automatically used for comprehensive analyses (30-minute TTL)
+
+## Error handling
+
+Common errors and solutions:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "Search query must be a non-empty string" | Empty or invalid query | Provide a valid string query |
+| "Search query too long (max 1000 characters)" | Query exceeds length limit | Shorten the query |
+| "from_date must be in ISO8601 format" | Invalid date format | Use YYYY-MM-DD format |
+| "from_date must be before or equal to to_date" | Date range logic error | Ensure from_date ≤ to_date |
+| "API service is not healthy" | Missing API key | Set XAI_API_KEY environment variable |
+
+See [Error handling](/guides/error-handling) for complete error reference.
+
+## Related tools
+
+<CardGroup cols={2}>
+  <Card title="grok-web-search" icon="globe" href="/tools/grok-web-search">
+    Dedicated web content search
+  </Card>
+  <Card title="grok-news-search" icon="newspaper" href="/tools/grok-news-search">
+    Dedicated news search
+  </Card>
+  <Card title="grok-twitter" icon="x-twitter" href="/tools/grok-twitter">
+    Social media search
+  </Card>
+  <Card title="Response formats" icon="brackets-curly" href="/api/response-formats">
+    Complete response specifications
+  </Card>
+</CardGroup>

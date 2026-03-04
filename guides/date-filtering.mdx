@@ -1,0 +1,338 @@
+---
+title: Date filtering
+description: Filter search results by date range using ISO8601 format
+---
+
+Date filtering allows you to narrow search results to specific time periods, making it easier to find recent developments or historical information.
+
+## Overview
+
+The Grok Search MCP Server supports precise date range filtering using the `from_date` and `to_date` parameters. Both parameters are optional and can be used independently or together.
+
+## Date format
+
+All dates must be in **ISO8601 format**: `YYYY-MM-DD`
+
+<Tip>
+Always use four-digit years, two-digit months, and two-digit days with hyphens as separators.
+</Tip>
+
+### Valid examples
+
+```json
+{
+  "from_date": "2025-01-01",
+  "to_date": "2025-12-31"
+}
+```
+
+```json
+{
+  "from_date": "2024-06-15",
+  "to_date": "2024-06-30"
+}
+```
+
+### Invalid examples
+
+<Warning>
+These formats will fail validation:
+
+- `2025/01/01` (wrong separator)
+- `01-01-2025` (wrong order)
+- `2025-1-1` (missing leading zeros)
+- `2025-13-01` (invalid month)
+- `2025-02-30` (invalid date)
+</Warning>
+
+## Validation logic
+
+The server validates dates using the `validateDateString` function (lines 11-33 in `index.js`):
+
+```javascript
+function validateDateString(dateString, paramName) {
+  if (!dateString) {
+    return null; // Optional parameter
+  }
+  
+  // Check format matches YYYY-MM-DD
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(dateString)) {
+    throw new Error(`${paramName} must be in ISO8601 format (YYYY-MM-DD)`);
+  }
+  
+  // Validate date is actually valid
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    throw new Error(`${paramName} is not a valid date`);
+  }
+  
+  // Check parsed date matches input
+  const isoString = date.toISOString().split('T')[0];
+  if (isoString !== dateString) {
+    throw new Error(`${paramName} is not a valid date`);
+  }
+  
+  return dateString;
+}
+```
+
+### Validation checks
+
+1. **Format validation**: Must match `YYYY-MM-DD` pattern
+2. **Date validity**: Must be a real calendar date (rejects Feb 30, etc.)
+3. **Consistency check**: Parsed date must match input string
+4. **Range logic**: `from_date` must be before or equal to `to_date`
+
+<Note>
+The server automatically validates that `from_date` is not after `to_date` and returns a clear error if the range is invalid.
+</Note>
+
+## Common patterns
+
+### Last week
+
+```json
+{
+  "query": "AI developments",
+  "from_date": "2025-06-17",
+  "to_date": "2025-06-24"
+}
+```
+
+### Specific month
+
+```json
+{
+  "query": "climate policy updates",
+  "from_date": "2025-05-01",
+  "to_date": "2025-05-31"
+}
+```
+
+### Year to date
+
+```json
+{
+  "query": "tech industry layoffs",
+  "from_date": "2025-01-01",
+  "to_date": "2025-06-24"
+}
+```
+
+### From specific date onwards
+
+```json
+{
+  "query": "cryptocurrency regulations",
+  "from_date": "2025-06-01"
+  // to_date omitted - searches up to present
+}
+```
+
+### Up to specific date
+
+```json
+{
+  "query": "historical election results",
+  "to_date": "2024-11-05"
+  // from_date omitted - searches from earliest available
+}
+```
+
+## Use cases
+
+<Accordion title="Recent developments">
+**Scenario**: Track breaking news or current events
+
+```json
+{
+  "query": "US Iran conflict",
+  "search_type": "news",
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-20",
+  "to_date": "2025-06-24"
+}
+```
+
+Filtering to recent dates ensures you get the latest updates without older historical context cluttering results.
+</Accordion>
+
+<Accordion title="Historical research">
+**Scenario**: Study events from a specific period
+
+```json
+{
+  "query": "COVID-19 vaccine development",
+  "search_type": "news",
+  "from_date": "2020-03-01",
+  "to_date": "2020-12-31"
+}
+```
+
+Narrow focus to a specific time period to understand how events unfolded during that timeframe.
+</Accordion>
+
+<Accordion title="Trend analysis">
+**Scenario**: Compare coverage across time periods
+
+```json
+// Q1 2025
+{
+  "query": "artificial intelligence regulation",
+  "from_date": "2025-01-01",
+  "to_date": "2025-03-31"
+}
+
+// Q2 2025
+{
+  "query": "artificial intelligence regulation",
+  "from_date": "2025-04-01",
+  "to_date": "2025-06-30"
+}
+```
+
+Run multiple searches with different date ranges to track how discussion evolves over time.
+</Accordion>
+
+<Accordion title="Event-focused search">
+**Scenario**: Research around a specific event
+
+```json
+{
+  "query": "company quarterly earnings",
+  "from_date": "2025-04-15",
+  "to_date": "2025-04-25"
+}
+```
+
+Focus on a narrow window around an important event (earnings call, product launch, etc.).
+</Accordion>
+
+## Twitter/X date filtering
+
+Date filtering is particularly useful for social media searches:
+
+```json
+{
+  "query": "basketball NBA playoffs",
+  "handles": ["KDTrey5"],
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-15",
+  "to_date": "2025-06-24"
+}
+```
+
+This returns Kevin Durant's tweets about the playoffs during that specific week.
+
+<Tip>
+Use recent date ranges (last 7-30 days) for Twitter searches to capture active conversations and trending topics.
+</Tip>
+
+## Error handling
+
+### Common errors
+
+**Invalid format**
+```json
+// Error: "from_date must be in ISO8601 format (YYYY-MM-DD)"
+{
+  "from_date": "06/24/2025"  // Wrong format
+}
+```
+
+**Invalid date**
+```json
+// Error: "from_date is not a valid date"
+{
+  "from_date": "2025-02-30"  // February doesn't have 30 days
+}
+```
+
+**Invalid range**
+```json
+// Error: "from_date must be before or equal to to_date"
+{
+  "from_date": "2025-06-24",
+  "to_date": "2025-06-20"  // End date before start date
+}
+```
+
+### Validation implementation
+
+From `index.js` lines 218-229:
+
+```javascript
+// Validate date parameters
+const validatedFromDate = validateDateString(fromDate, "from_date");
+const validatedToDate = validateDateString(toDate, "to_date");
+
+// Check date logic - from_date should be before or equal to to_date
+if (validatedFromDate && validatedToDate) {
+  const fromDateObj = new Date(validatedFromDate);
+  const toDateObj = new Date(validatedToDate);
+  if (fromDateObj > toDateObj) {
+    throw new Error("from_date must be before or equal to to_date");
+  }
+}
+```
+
+## Best practices
+
+### Be specific but realistic
+
+<Tabs>
+  <Tab title="Good">
+    ```json
+    {
+      "query": "AI model releases",
+      "from_date": "2025-06-01",
+      "to_date": "2025-06-24"
+    }
+    ```
+    Reasonable range for recent news
+  </Tab>
+  <Tab title="Too narrow">
+    ```json
+    {
+      "query": "AI model releases",
+      "from_date": "2025-06-24",
+      "to_date": "2025-06-24"
+    }
+    ```
+    Single day may have limited results
+  </Tab>
+  <Tab title="Too broad">
+    ```json
+    {
+      "query": "AI model releases",
+      "from_date": "2020-01-01",
+      "to_date": "2025-06-24"
+    }
+    ```
+    Very wide range may return too many results
+  </Tab>
+</Tabs>
+
+### Adjust based on search type
+
+- **News searches**: Use recent dates (last 30-90 days)
+- **Web searches**: Can use broader ranges (3-12 months)
+- **Twitter searches**: Use recent dates (last 7-30 days)
+
+### Combine with comprehensive mode
+
+Date filtering pairs well with comprehensive analysis for time-sensitive research:
+
+```json
+{
+  "query": "climate summit outcomes",
+  "search_type": "news",
+  "analysis_mode": "comprehensive",
+  "from_date": "2025-06-15",
+  "to_date": "2025-06-24",
+  "max_results": 15
+}
+```
+
+This provides deep analysis of recent developments within a specific timeframe.

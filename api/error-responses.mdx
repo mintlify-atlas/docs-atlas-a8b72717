@@ -1,0 +1,244 @@
+---
+title: Error responses
+description: Error response format and common error scenarios
+---
+
+When a search request fails, the Grok Search MCP Server returns a standardized error response with diagnostic information to help identify and resolve the issue.
+
+## Error response structure
+
+<ResponseField name="error" type="string" required>
+  Detailed error message describing what went wrong
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Always set to `"failed"` for error responses
+</ResponseField>
+
+<ResponseField name="query" type="string">
+  The original search query that was attempted, or `"unknown"` if the query could not be determined
+</ResponseField>
+
+<ResponseField name="search_type" type="string">
+  The search type that was specified: `"web"`, `"news"`, `"twitter"`, or `"general"`
+</ResponseField>
+
+<ResponseField name="analysis_mode" type="string">
+  The analysis mode that was specified: `"basic"` or `"comprehensive"`
+</ResponseField>
+
+<ResponseField name="timestamp" type="string" required>
+  ISO 8601 timestamp of when the error occurred
+</ResponseField>
+
+<ResponseField name="request_id" type="string" required>
+  Unique request identifier for debugging purposes. Format: `req_{timestamp}_{random}`
+</ResponseField>
+
+<ResponseField name="from_date" type="string | null">
+  The from_date parameter if it was provided in the request
+</ResponseField>
+
+<ResponseField name="to_date" type="string | null">
+  The to_date parameter if it was provided in the request
+</ResponseField>
+
+## Example error responses
+
+### API key missing
+
+```json
+{
+  "error": "API service is not healthy - missing XAI_API_KEY",
+  "status": "failed",
+  "query": "search query",
+  "search_type": "web",
+  "analysis_mode": "basic",
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "request_id": "req_1719230400000_abc123",
+  "from_date": null,
+  "to_date": null
+}
+```
+
+### Empty query
+
+```json
+{
+  "error": "Search query must be a non-empty string",
+  "status": "failed",
+  "query": "",
+  "search_type": "web",
+  "analysis_mode": "basic",
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "request_id": "req_1719230400000_def456",
+  "from_date": null,
+  "to_date": null
+}
+```
+
+### Query too long
+
+```json
+{
+  "error": "Search query too long (max 1000 characters)",
+  "status": "failed",
+  "query": "very long query string...",
+  "search_type": "web",
+  "analysis_mode": "basic",
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "request_id": "req_1719230400000_ghi789",
+  "from_date": null,
+  "to_date": null
+}
+```
+
+### Invalid date format
+
+```json
+{
+  "error": "from_date must be in ISO8601 format (YYYY-MM-DD)",
+  "status": "failed",
+  "query": "search query",
+  "search_type": "news",
+  "analysis_mode": "basic",
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "request_id": "req_1719230400000_jkl012",
+  "from_date": "2025/06/24",
+  "to_date": null
+}
+```
+
+### Date range logic error
+
+```json
+{
+  "error": "from_date must be before or equal to to_date",
+  "status": "failed",
+  "query": "search query",
+  "search_type": "news",
+  "analysis_mode": "basic",
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "request_id": "req_1719230400000_mno345",
+  "from_date": "2025-06-24",
+  "to_date": "2025-06-20"
+}
+```
+
+### Request timeout
+
+```json
+{
+  "error": "Request timeout after 30000ms",
+  "status": "failed",
+  "query": "search query",
+  "search_type": "web",
+  "analysis_mode": "comprehensive",
+  "timestamp": "2025-06-24T12:00:30.000Z",
+  "request_id": "req_1719230400000_pqr678",
+  "from_date": null,
+  "to_date": null
+}
+```
+
+### API request failure
+
+```json
+{
+  "error": "API request failed: 429 - Rate limit exceeded",
+  "status": "failed",
+  "query": "search query",
+  "search_type": "web",
+  "analysis_mode": "basic",
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "request_id": "req_1719230400000_stu901",
+  "from_date": null,
+  "to_date": null
+}
+```
+
+### Network error
+
+```json
+{
+  "error": "Failed to make API request: Network connection failed",
+  "status": "failed",
+  "query": "search query",
+  "search_type": "web",
+  "analysis_mode": "basic",
+  "timestamp": "2025-06-24T12:00:00.000Z",
+  "request_id": "req_1719230400000_vwx234",
+  "from_date": null,
+  "to_date": null
+}
+```
+
+## Error categories
+
+### Configuration errors
+
+These errors indicate issues with server configuration:
+
+- `"API service is not healthy - missing XAI_API_KEY"` - The XAI_API_KEY environment variable is not set
+- `"API service is not available"` - The API service cannot be initialized
+
+**Resolution:** Check environment variable configuration and ensure the API key is properly set.
+
+### Validation errors
+
+These errors indicate problems with request parameters:
+
+- `"Search query must be a non-empty string"` - Query is missing or not a string
+- `"Search query cannot be empty after sanitization"` - Query contains only control characters
+- `"Search query too long (max 1000 characters)"` - Query exceeds length limit
+- `"from_date must be in ISO8601 format (YYYY-MM-DD)"` - Date format is incorrect
+- `"to_date must be in ISO8601 format (YYYY-MM-DD)"` - Date format is incorrect
+- `"from_date is not a valid date"` - Date is invalid (e.g., 2024-02-30)
+- `"from_date must be before or equal to to_date"` - Date range logic error
+
+**Resolution:** Validate and correct request parameters before making the request.
+
+### API errors
+
+These errors occur during API communication:
+
+- `"API request failed: {status} - {message}"` - HTTP error from the API
+- `"Request timeout after {ms}ms"` - Request exceeded timeout limit
+- `"Failed to make API request: {error}"` - Network or connection error
+
+**Resolution:** The server automatically retries on transient errors (5xx, 429, network issues). If the error persists, check API status and network connectivity.
+
+### Parsing errors
+
+These errors occur when processing API responses:
+
+- `"Failed to parse search results: {error}"` - Response parsing failed
+
+**Resolution:** The server uses multiple parsing strategies. If this error occurs, the response format may be unexpected. Check API status and report persistent issues.
+
+## Retry behavior
+
+The server automatically retries requests for certain error conditions:
+
+- **Server errors (5xx):** Retries up to 3 times with exponential backoff
+- **Rate limits (429):** Retries up to 3 times with exponential backoff
+- **Network errors:** Retries up to 3 times with exponential backoff
+
+Backoff delays:
+- First retry: 1 second
+- Second retry: 2 seconds
+- Third retry: 4 seconds
+- Maximum delay: 10 seconds
+
+After exhausting retries, the final error is returned to the client.
+
+## Debugging with request IDs
+
+Every error response includes a unique `request_id` in the format `req_{timestamp}_{random}`. Use this ID when:
+
+- Reporting issues to support
+- Correlating errors across systems
+- Debugging multiple failed requests
+- Analyzing error patterns in logs
+
+The timestamp component of the request ID is a Unix timestamp in milliseconds, useful for determining when the error occurred.

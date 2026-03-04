@@ -1,0 +1,358 @@
+---
+title: Performance
+description: Performance characteristics and optimization strategies
+---
+
+Understanding the performance characteristics of the Grok Search MCP Server helps you optimize for speed, cost, and resource usage.
+
+## Token usage
+
+Token consumption varies significantly between analysis modes:
+
+### Basic mode
+
+- **Maximum tokens**: ~2,000 tokens per request
+- **Typical usage**: 1,500-2,000 tokens depending on result complexity
+- **Use case**: Quick searches, simple information lookup
+- **Cost efficiency**: Lower token usage reduces API costs
+
+### Comprehensive mode
+
+- **Maximum tokens**: ~4,000 tokens per request
+- **Typical usage**: 3,000-4,000 tokens for detailed analysis
+- **Use case**: Deep research, contextual analysis, timeline extraction
+- **Cost efficiency**: Higher token usage but provides extensive analysis
+- **Caching benefit**: Cached results eliminate token usage for repeat queries
+
+## Request timeouts
+
+The server implements configurable timeout controls:
+
+### Default timeout
+
+```bash
+# Default: 30 seconds (30000ms)
+GROK_TIMEOUT=30000
+```
+
+### Customizing timeout
+
+Set the `GROK_TIMEOUT` environment variable:
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "your-api-key",
+        "GROK_TIMEOUT": "45000"
+      }
+    }
+  }
+}
+```
+
+### Timeout recommendations
+
+- **Basic mode**: 15,000-30,000ms (15-30 seconds)
+- **Comprehensive mode**: 30,000-60,000ms (30-60 seconds)
+- **Slow networks**: Increase timeout by 50-100%
+- **Fast networks**: Can reduce timeout for quicker failure detection
+
+## Retry logic
+
+The server automatically retries failed requests with exponential backoff:
+
+### Retry configuration
+
+```bash
+# Default: 3 retry attempts
+GROK_MAX_RETRIES=3
+```
+
+### Retry scenarios
+
+Automatic retries occur for:
+
+- **Server errors (5xx)** - API server errors
+- **Rate limits (429)** - API rate limiting
+- **Network errors** - Connection failures
+
+### Backoff delays
+
+Exponential backoff with maximum cap:
+
+```javascript
+const backoffDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+```
+
+**Delay schedule:**
+- Attempt 1: 1 second (1000ms)
+- Attempt 2: 2 seconds (2000ms)
+- Attempt 3: 4 seconds (4000ms)
+- Maximum delay: 10 seconds (10000ms)
+
+### Total retry time
+
+Maximum retry overhead:
+- 3 retries: 1s + 2s + 4s = 7 seconds additional time
+- Plus original request times
+
+## Optimization strategies
+
+### Use basic mode for speed
+
+**When to choose basic mode:**
+- Quick information lookups
+- Real-time or time-sensitive queries
+- High-frequency searches
+- Cost optimization priority
+
+**Performance benefits:**
+- ~50% fewer tokens (2,000 vs 4,000)
+- Faster processing time
+- No cache dependency
+- Always fresh results
+
+### Leverage caching
+
+**Comprehensive mode caching:**
+- 30-minute TTL (time-to-live)
+- Up to 100 cached analyses
+- LRU (Least Recently Used) eviction
+- Near-instant cache hits
+
+**Cache optimization tips:**
+1. Reuse identical queries within 30 minutes
+2. Structure queries consistently
+3. Monitor cache size via health_check
+4. Accept 30-minute staleness for non-critical queries
+
+[Learn more about caching](/api/caching)
+
+### Use date ranges to narrow scope
+
+**Benefits of date filtering:**
+- Reduces search space
+- Faster query processing
+- More focused results
+- Lower token usage
+
+**Example:**
+```json
+{
+  "query": "AI developments",
+  "from_date": "2025-06-01",
+  "to_date": "2025-06-24",
+  "analysis_mode": "basic"
+}
+```
+
+**Recommendations:**
+- Use specific date ranges for news searches
+- Limit to last 7-30 days for current events
+- Broader ranges for historical analysis
+- Combine with comprehensive mode for deep dives
+
+### Tune max_results parameter
+
+**Parameter range:** 1-20 (default: 10)
+
+**Optimization guidelines:**
+
+| Results | Use Case | Token Impact | Speed |
+|---------|----------|--------------|-------|
+| 1-5 | Quick lookups | Minimal | Fastest |
+| 5-10 | Standard searches | Moderate | Fast |
+| 10-15 | Comprehensive coverage | Higher | Moderate |
+| 15-20 | Maximum coverage | Highest | Slower |
+
+**Example:**
+```json
+{
+  "query": "quick lookup",
+  "max_results": 3,
+  "analysis_mode": "basic"
+}
+```
+
+### Optimize search type selection
+
+**Search type performance:**
+
+- **web** - Broadest scope, moderate speed
+- **news** - Focused sources, faster filtering
+- **twitter** - Social media only, fast and specific
+- **general** - All sources, slowest but most comprehensive
+
+**Selection strategy:**
+1. Use specific search types when possible
+2. Avoid "general" for time-sensitive queries
+3. Match search type to content needs
+4. Combine with date ranges for best results
+
+## Performance monitoring
+
+### Health check metrics
+
+Use the `health_check` tool to monitor performance:
+
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "uptime_ms": 3600000,
+  "total_requests": 150,
+  "error_count": 3,
+  "success_rate": "98.00%",
+  "api_details": {
+    "hasApiKey": true,
+    "cacheSize": 12,
+    "lastError": null
+  }
+}
+```
+
+**Key metrics:**
+- **success_rate** - Percentage of successful requests
+- **error_count** - Number of failed requests
+- **cacheSize** - Current cache utilization
+- **uptime_ms** - Server uptime in milliseconds
+
+[Learn more about monitoring](/api/monitoring)
+
+### Request tracking
+
+Every request includes tracking metadata:
+
+```json
+{
+  "search_time": "2025-06-24T12:00:00.000Z",
+  "request_id": "req_1719230400000_abc123"
+}
+```
+
+Use these fields to:
+- Measure request duration
+- Correlate requests across systems
+- Debug performance issues
+- Analyze usage patterns
+
+## Performance best practices
+
+### 1. Choose the right mode
+
+```javascript
+// Fast lookups
+{ analysis_mode: "basic" }
+
+// Deep analysis (leverage caching)
+{ analysis_mode: "comprehensive" }
+```
+
+### 2. Optimize parameters
+
+```javascript
+{
+  "query": "specific topic",
+  "search_type": "news",        // Specific, not "general"
+  "max_results": 5,             // Only what you need
+  "from_date": "2025-06-20",    // Narrow date range
+  "to_date": "2025-06-24"
+}
+```
+
+### 3. Configure appropriate timeouts
+
+```bash
+# Production: longer timeout for reliability
+GROK_TIMEOUT=45000
+
+# Development: shorter timeout for quick feedback
+GROK_TIMEOUT=20000
+```
+
+### 4. Monitor and adjust
+
+1. Check success_rate regularly
+2. Monitor cache hit rates
+3. Adjust timeouts based on actual performance
+4. Track error patterns
+5. Optimize retry settings if needed
+
+## Network considerations
+
+### Bandwidth usage
+
+- **Request size**: Minimal (query + parameters)
+- **Response size**: 
+  - Basic mode: ~5-20 KB typical
+  - Comprehensive mode: ~20-100 KB typical
+- **Total bandwidth**: Low to moderate
+
+### Latency factors
+
+1. **Network latency** - Your connection to xAI API
+2. **API processing** - Grok API processing time
+3. **Result parsing** - Server-side processing
+4. **Cache lookup** - Near-zero for hits
+
+### Connection optimization
+
+- Use persistent connections (handled automatically)
+- Batch similar queries when possible
+- Leverage caching for repeated queries
+- Configure retry limits appropriately
+
+## Resource usage
+
+### Memory
+
+- **Cache**: Up to 100 comprehensive analyses
+- **Typical cache entry**: 20-100 KB
+- **Maximum cache size**: ~10 MB
+- **Overall footprint**: Low (under 50 MB typical)
+
+### CPU
+
+- **JSON parsing**: Minimal CPU usage
+- **Cache operations**: O(1) constant time
+- **Input validation**: Minimal overhead
+- **Overall impact**: Low
+
+### Disk
+
+- **No disk I/O** - Cache is in-memory only
+- **No persistent storage**
+- **Logs to stderr** - Optional redirection
+
+## Troubleshooting slow performance
+
+1. **Check network connectivity**
+   ```bash
+   # Test network latency
+   ping api.x.ai
+   ```
+
+2. **Monitor API health**
+   ```json
+   { "tool": "health_check" }
+   ```
+
+3. **Reduce request complexity**
+   - Switch to basic mode
+   - Reduce max_results
+   - Narrow date range
+   - Use specific search_type
+
+4. **Increase timeout if needed**
+   ```bash
+   GROK_TIMEOUT=60000
+   ```
+
+5. **Check error patterns**
+   - Review error_count in health_check
+   - Look for timeout errors
+   - Check for rate limiting (429 errors)

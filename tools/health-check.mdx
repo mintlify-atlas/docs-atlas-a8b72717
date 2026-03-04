@@ -1,0 +1,443 @@
+---
+title: health-check
+description: Monitor server health and API connectivity status
+---
+
+The `health_check` tool provides diagnostics and monitoring capabilities for the Grok Search MCP server. It checks API connectivity, tracks performance metrics, and helps troubleshoot configuration issues.
+
+## When to use
+
+Use `health_check` when you need to:
+
+- Verify the server is running correctly
+- Confirm API key configuration is valid
+- Check API connectivity status
+- Monitor server performance metrics
+- Troubleshoot connection issues
+- Get server uptime and statistics
+
+## Parameters
+
+The `health_check` tool requires **no parameters**.
+
+```json
+{}
+```
+
+## Usage example
+
+### Basic health check
+
+```json
+{}
+```
+
+That's it! No parameters needed.
+
+## Response format
+
+The health check returns a JSON object with comprehensive diagnostic information:
+
+### Healthy server response
+
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "uptime_ms": 3600000,
+  "total_requests": 150,
+  "error_count": 2,
+  "success_rate": "98.67%",
+  "api_details": {
+    "hasApiKey": true,
+    "cacheSize": 5,
+    "lastError": null
+  }
+}
+```
+
+### Unhealthy server response
+
+```json
+{
+  "server_healthy": false,
+  "api_healthy": false,
+  "uptime_ms": 120000,
+  "total_requests": 10,
+  "error_count": 10,
+  "success_rate": "0.00%",
+  "api_details": {
+    "hasApiKey": false,
+    "cacheSize": 0,
+    "lastError": "API service is not healthy - missing XAI_API_KEY"
+  }
+}
+```
+
+## Response fields
+
+### server_healthy
+
+- **Type**: boolean
+- **Description**: Overall server health status
+- **Values**: `true` if server is operational, `false` if there are critical issues
+
+### api_healthy
+
+- **Type**: boolean  
+- **Description**: API connectivity and configuration status
+- **Values**: `true` if API is accessible and configured, `false` if API key is missing or invalid
+
+### uptime_ms
+
+- **Type**: number
+- **Description**: Server uptime in milliseconds since last restart
+- **Example**: `3600000` = 1 hour uptime
+- **Calculation**: Convert to minutes: `uptime_ms / 60000`
+
+### total_requests
+
+- **Type**: number
+- **Description**: Total number of search requests processed since server start
+- **Usage**: Monitor server activity and load
+
+### error_count
+
+- **Type**: number
+- **Description**: Number of failed requests since server start
+- **Usage**: Identify if there's a pattern of failures
+
+### success_rate
+
+- **Type**: string
+- **Description**: Percentage of successful requests
+- **Format**: "XX.XX%"
+- **Calculation**: `((total_requests - error_count) / total_requests) * 100`
+- **Values**: "N/A" if no requests have been made yet
+
+### api_details.hasApiKey
+
+- **Type**: boolean
+- **Description**: Whether XAI_API_KEY environment variable is set
+- **Values**: `true` if API key is configured, `false` if missing
+
+### api_details.cacheSize
+
+- **Type**: number
+- **Description**: Number of comprehensive analyses currently cached
+- **Range**: 0-100 (max cache size)
+- **Usage**: Monitor cache utilization
+
+### api_details.lastError
+
+- **Type**: string or null
+- **Description**: Most recent error message from API operations
+- **Values**: Error message string or `null` if no recent errors
+- **Usage**: Troubleshooting and diagnostics
+
+## Interpreting results
+
+### Healthy server indicators
+
+✅ All good:
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "success_rate": "98%+",
+  "api_details": {
+    "hasApiKey": true,
+    "lastError": null
+  }
+}
+```
+
+### Common issues
+
+#### Missing API key
+
+❌ Problem:
+```json
+{
+  "api_healthy": false,
+  "api_details": {
+    "hasApiKey": false,
+    "lastError": "API service is not healthy - missing XAI_API_KEY"
+  }
+}
+```
+
+**Solution**: Set the `XAI_API_KEY` environment variable in your Claude Desktop configuration:
+
+```json
+{
+  "mcpServers": {
+    "grok-search": {
+      "command": "npx",
+      "args": ["grok-search-mcp"],
+      "env": {
+        "XAI_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+#### High error rate
+
+⚠️ Warning:
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "error_count": 15,
+  "total_requests": 20,
+  "success_rate": "25.00%"
+}
+```
+
+**Possible causes**:
+- Invalid queries or parameters
+- Network connectivity issues
+- API rate limiting
+- API service issues
+
+**Solution**: Check `lastError` field for specific error messages.
+
+#### Recent API errors
+
+⚠️ Warning:
+```json
+{
+  "api_healthy": true,
+  "api_details": {
+    "hasApiKey": true,
+    "lastError": "Request timeout after 30000ms"
+  }
+}
+```
+
+**Possible causes**:
+- Network latency
+- Complex comprehensive analysis queries
+- API service slowdown
+
+**Solution**: 
+- Increase `GROK_TIMEOUT` environment variable
+- Use basic mode instead of comprehensive
+- Check network connectivity
+
+## Use cases
+
+### Initial setup verification
+
+Run health check after configuring the server:
+
+```json
+{}
+```
+
+Expect: `api_healthy: true` and `hasApiKey: true`
+
+### Troubleshooting connection issues
+
+When searches fail, run health check to identify the problem:
+
+```json
+{}
+```
+
+Check: `api_healthy`, `hasApiKey`, and `lastError` fields
+
+### Performance monitoring
+
+Periodically check server statistics:
+
+```json
+{}
+```
+
+Monitor: `success_rate`, `total_requests`, `error_count`, `cacheSize`
+
+### Pre-flight check
+
+Before running complex searches, verify server health:
+
+```json
+{}
+```
+
+Confirm: `server_healthy: true` and `api_healthy: true`
+
+## Monitoring metrics
+
+### Success rate interpretation
+
+| Success Rate | Status | Action |
+|--------------|--------|--------|
+| 95-100% | Excellent | No action needed |
+| 85-94% | Good | Monitor for patterns |
+| 70-84% | Warning | Check lastError, review queries |
+| Below 70% | Critical | Investigate configuration and connectivity |
+
+### Cache utilization
+
+| Cache Size | Interpretation |
+|------------|----------------|
+| 0 | No comprehensive searches cached yet |
+| 1-50 | Normal usage |
+| 50-80 | Heavy comprehensive analysis usage |
+| 80-100 | Near capacity, oldest items being evicted |
+
+**Note**: Cache holds up to 100 comprehensive analysis results with 30-minute TTL.
+
+### Uptime tracking
+
+Convert `uptime_ms` to readable format:
+
+- **Seconds**: `uptime_ms / 1000`
+- **Minutes**: `uptime_ms / 60000`
+- **Hours**: `uptime_ms / 3600000`
+
+Example:
+```
+3600000 ms = 3600 seconds = 60 minutes = 1 hour
+```
+
+## Troubleshooting guide
+
+### Server won't start
+
+1. Run health check - if it returns any response, server is running
+2. If no response, check:
+   - Node.js version (requires 18.0.0+)
+   - NPX installation: `npx grok-search-mcp --help`
+   - Claude Desktop configuration syntax
+
+### API key issues
+
+If `hasApiKey: false`:
+
+1. Check Claude Desktop config file location:
+   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+   - Linux: `~/.config/Claude/claude_desktop_config.json`
+
+2. Verify JSON syntax:
+   ```bash
+   python -m json.tool config.json
+   ```
+
+3. Ensure API key format starts with "xai-"
+
+4. Restart Claude Desktop after configuration changes
+
+### High error rates
+
+If `success_rate` is low:
+
+1. Check `lastError` for specific error message
+2. Review recent query parameters
+3. Test with simple query:
+   ```json
+   {
+     "query": "test",
+     "max_results": 3
+   }
+   ```
+4. Check xAI API status at https://status.x.ai/
+
+### Timeout errors
+
+If `lastError` shows timeout:
+
+1. Increase timeout in configuration:
+   ```json
+   {
+     "env": {
+       "XAI_API_KEY": "your-key",
+       "GROK_TIMEOUT": "45000"
+     }
+   }
+   ```
+
+2. Use basic mode instead of comprehensive
+3. Reduce `max_results` parameter
+4. Check network connectivity
+
+## Best practices
+
+### Regular monitoring
+
+- Run health check after initial setup
+- Check health before important search operations
+- Monitor success rate periodically
+- Review cache size to understand usage patterns
+
+### Integration with workflows
+
+```javascript
+// Pseudo-code workflow
+const health = await healthCheck();
+
+if (!health.api_healthy) {
+  console.error('API not healthy:', health.api_details.lastError);
+  return;
+}
+
+if (health.success_rate < 90) {
+  console.warn('High error rate detected');
+}
+
+// Proceed with search operations
+```
+
+### Diagnostics checklist
+
+When troubleshooting issues:
+
+1. ✅ Run health check first
+2. ✅ Verify `api_healthy: true`
+3. ✅ Confirm `hasApiKey: true`
+4. ✅ Check `success_rate` is reasonable
+5. ✅ Review `lastError` if present
+6. ✅ Consider recent query patterns
+
+## Environment variables reference
+
+The health check helps verify these environment variables are working:
+
+### XAI_API_KEY (required)
+
+- **Status**: Checked via `api_details.hasApiKey`
+- **Format**: String starting with "xai-"
+- **Get from**: https://console.x.ai/
+
+### GROK_TIMEOUT (optional)
+
+- **Default**: 30000 (30 seconds)
+- **Effect**: Request timeout in milliseconds
+- **Recommended**: 30000-60000
+
+### GROK_MAX_RETRIES (optional)
+
+- **Default**: 3
+- **Effect**: Maximum retry attempts for failed requests
+- **Recommended**: 3-5
+
+## Related resources
+
+<CardGroup cols={2}>
+  <Card title="Installation guide" icon="download" href="/installation">
+    Set up and configure the server
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/environment-variables">
+    Environment variables and settings
+  </Card>
+  <Card title="Error handling" icon="triangle-exclamation" href="/guides/error-handling">
+    Troubleshoot common errors
+  </Card>
+  <Card title="Tools overview" icon="wrench" href="/tools/overview">
+    All available tools
+  </Card>
+</CardGroup>

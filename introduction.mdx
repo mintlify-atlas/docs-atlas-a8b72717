@@ -1,0 +1,112 @@
+---
+title: Introduction
+description: Learn about the Grok Search MCP Server and its powerful search capabilities
+---
+
+The Grok Search MCP Server is a robust Model Context Protocol (MCP) server that provides comprehensive web search and analysis capabilities using xAI's Grok API. It enables AI assistants like Claude Desktop to perform sophisticated searches across web content, news, and social media.
+
+## What is Grok Search MCP Server?
+
+Grok Search MCP Server is a CLI tool that bridges the gap between MCP-compatible clients (like Claude Desktop) and xAI's Grok search API. It provides both basic search results and comprehensive analysis modes, making it ideal for research, news monitoring, and real-time information gathering.
+
+## Key features
+
+### Search capabilities
+
+<CardGroup cols={2}>
+  <Card title="Web search" icon="globe">
+    Search general web content using Grok's AI-powered search across articles, blogs, and informational pages
+  </Card>
+  <Card title="News search" icon="newspaper">
+    Search for recent news and current events with timeline analysis and comprehensive context
+  </Card>
+  <Card title="Twitter/X search" icon="x-twitter">
+    Search social media posts with sentiment analysis and specific handle filtering
+  </Card>
+  <Card title="Date range filtering" icon="calendar">
+    Search within specific time periods using ISO8601 date formats (YYYY-MM-DD)
+  </Card>
+</CardGroup>
+
+### Analysis modes
+
+The server offers two distinct analysis modes to match your needs:
+
+**Basic mode**
+- Traditional search results with titles, snippets, and URLs
+- Fast response times (~2000 tokens max)
+- Ideal for quick lookups and simple queries
+- Returns structured JSON with citations
+
+**Comprehensive mode**
+- Rich analysis including detailed timelines of events
+- Direct quotes with full attribution and context
+- Multiple perspectives and viewpoints analysis
+- Historical context and implications
+- Fact verification status tracking
+- Key findings categorization
+- Extended analysis (~4000 tokens max)
+
+### Reliability features
+
+<Note>
+The server includes production-ready reliability features to ensure consistent performance.
+</Note>
+
+- **Retry logic**: Automatic retry with exponential backoff for failed requests (up to 3 retries by default)
+- **Request timeouts**: Configurable timeouts to prevent hanging (default: 30 seconds)
+- **Graceful error handling**: Comprehensive error responses with detailed context and request IDs
+- **Health monitoring**: Built-in health checks and performance metrics tracking
+- **Intelligent caching**: 30-minute cache for comprehensive analyses (max 100 items)
+- **Input validation**: Enhanced sanitization and validation of all inputs
+
+## Use cases
+
+- **Research and analysis**: Gather comprehensive information on complex topics with multiple perspectives
+- **News monitoring**: Track breaking news and current events with timeline analysis
+- **Social media insights**: Analyze Twitter/X conversations and sentiment around specific topics
+- **Fact checking**: Access verification status and contradictory information tracking
+- **Historical context**: Understand events with related background and implications
+
+## System requirements
+
+<Warning>
+Ensure your system meets these requirements before installation.
+</Warning>
+
+- **Node.js**: Version 18.0.0 or higher
+- **Operating System**: macOS, Windows, or Linux
+- **Memory**: Minimum 512MB available RAM
+- **Network**: Active internet connection for API calls
+- **API Key**: Valid xAI API key from [console.x.ai](https://console.x.ai/)
+
+## How it works
+
+The Grok Search MCP Server operates as a bridge between MCP clients and the xAI API:
+
+1. **Installation**: Install globally via npm or run with npx
+2. **Configuration**: Set up your xAI API key and configure Claude Desktop
+3. **Integration**: The server connects via stdio transport using JSON-RPC 2.0
+4. **Execution**: Search tools become available in Claude Desktop
+5. **Results**: Get structured JSON responses with citations and metadata
+
+## Available tools
+
+Once configured, the server provides five tools:
+
+- `grok_search` - Universal search with configurable types and analysis modes
+- `grok_web_search` - Dedicated web content search
+- `grok_news_search` - News and current events search
+- `grok_twitter` - Twitter/X posts search with handle filtering
+- `health_check` - Server diagnostics and API connectivity status
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install the server via git clone and npm
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get started with your first search in minutes
+  </Card>
+</CardGroup>

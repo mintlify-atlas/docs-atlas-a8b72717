@@ -1,0 +1,214 @@
+---
+title: Installation
+description: Install and verify the Grok Search MCP Server on your system
+---
+
+This guide walks you through installing the Grok Search MCP Server on your system.
+
+## Prerequisites
+
+Before installing, ensure you have:
+
+- **Node.js 18.0.0 or higher** installed on your system
+- **Git** for cloning the repository
+- **npm** (comes with Node.js)
+- Terminal or command line access
+
+<Warning>
+The server requires Node.js version 18.0.0 or higher. Check your version with `node --version`.
+</Warning>
+
+## Installation methods
+
+### Method 1: Global installation (recommended)
+
+This method installs the server globally, making it available system-wide.
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the Grok Search MCP Server repository from GitHub:
+    
+    ```bash
+    git clone https://github.com/stat-guy/grok-search-mcp.git
+    ```
+  </Step>
+  
+  <Step title="Navigate to the directory">
+    Change into the cloned directory:
+    
+    ```bash
+    cd grok-search-mcp
+    ```
+  </Step>
+  
+  <Step title="Install globally">
+    Install the package globally using npm:
+    
+    ```bash
+    npm install -g .
+    ```
+    
+    This command:
+    - Installs all dependencies from `package.json`
+    - Makes the `grok-search-mcp` command available globally
+    - Sets up the binary in your system PATH
+  </Step>
+</Steps>
+
+### Method 2: NPX usage
+
+For quick testing or one-time use without installation:
+
+```bash
+npx grok-search-mcp
+```
+
+<Note>
+NPX downloads and runs the package on-demand. This is useful for testing but requires an internet connection each time.
+</Note>
+
+## Verification
+
+After installation, verify that the server is working correctly.
+
+<Steps>
+  <Step title="Check version and help">
+    Display the server version and help information:
+    
+    ```bash
+    npx grok-search-mcp --help
+    ```
+    
+    You should see output similar to:
+    
+    ```
+    Grok Search MCP Server v1.0.0
+
+    USAGE:
+      grok-search-mcp [options]
+
+    OPTIONS:
+      --help, -h    Show this help message
+
+    DESCRIPTION:
+      MCP server providing comprehensive web search capabilities using xAI's Grok API.
+      Supports basic search results and comprehensive analysis with timelines, quotes,
+      and multiple perspectives.
+    ```
+  </Step>
+  
+  <Step title="Test server startup">
+    Test that the server can start (it will show a warning about the missing API key):
+    
+    ```bash
+    npx grok-search-mcp
+    ```
+    
+    <Warning>
+    You'll see an error about `XAI_API_KEY` being required. This is expected - you'll set up the API key in the next section.
+    </Warning>
+    
+    Press `Ctrl+C` to stop the server.
+  </Step>
+</Steps>
+
+## Common installation issues
+
+### Node.js version too old
+
+**Error**: `engine "node" is incompatible`
+
+**Solution**: Upgrade Node.js to version 18.0.0 or higher:
+
+```bash
+# Check your current version
+node --version
+
+# Visit https://nodejs.org/ to download the latest LTS version
+```
+
+### Permission errors on global install
+
+**Error**: `EACCES: permission denied`
+
+**Solution**: Use npm's recommended fix or use a Node version manager:
+
+<CodeGroup>
+```bash macOS/Linux
+# Option 1: Fix npm permissions
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+export PATH=~/.npm-global/bin:$PATH
+
+# Then retry the install
+npm install -g .
+```
+
+```bash Windows (PowerShell)
+# Run PowerShell as Administrator, then:
+npm install -g .
+```
+</CodeGroup>
+
+### Git not installed
+
+**Error**: `git: command not found`
+
+**Solution**: Install Git:
+
+- **macOS**: `brew install git` (requires Homebrew)
+- **Windows**: Download from [git-scm.com](https://git-scm.com/)
+- **Linux**: `sudo apt-get install git` (Ubuntu/Debian) or `sudo yum install git` (CentOS/RHEL)
+
+### NPM not found
+
+**Error**: `npm: command not found`
+
+**Solution**: npm comes with Node.js. Reinstall Node.js from [nodejs.org](https://nodejs.org/).
+
+## Updating the server
+
+To update to the latest version:
+
+<Steps>
+  <Step title="Navigate to the repository">
+    ```bash
+    cd grok-search-mcp
+    ```
+  </Step>
+  
+  <Step title="Pull latest changes">
+    ```bash
+    git pull origin main
+    ```
+  </Step>
+  
+  <Step title="Reinstall globally">
+    ```bash
+    npm install -g .
+    ```
+  </Step>
+</Steps>
+
+## Uninstalling
+
+To remove the global installation:
+
+```bash
+npm uninstall -g grok-search-mcp
+```
+
+To remove the cloned repository:
+
+```bash
+cd ..
+rm -rf grok-search-mcp
+```
+
+## Next steps
+
+Now that you've installed the server, proceed to the quickstart guide to configure it with Claude Desktop.
+
+<Card title="Quickstart" icon="rocket" href="/quickstart">
+  Configure Claude Desktop and make your first search
+</Card>

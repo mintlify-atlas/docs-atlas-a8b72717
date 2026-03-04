@@ -1,0 +1,198 @@
+---
+title: Caching
+description: Intelligent caching implementation for comprehensive analyses
+---
+
+The Grok Search MCP Server implements intelligent caching specifically for comprehensive analyses to optimize performance and reduce API costs.
+
+## Cache implementation
+
+The server uses an in-memory LRU (Least Recently Used) cache implemented in the `SearchCache` class (index.js:36-70).
+
+### Cache configuration
+
+<ResponseField name="maxSize" type="number" default="100">
+  Maximum number of cached items. When the cache is full, the oldest item is evicted (LRU strategy).
+</ResponseField>
+
+<ResponseField name="ttl" type="number" default="1800000">
+  Time-to-live in milliseconds. Set to 30 minutes (30 * 60 * 1000 = 1,800,000ms). Cached items expire after this duration.
+</ResponseField>
+
+## What gets cached
+
+Caching behavior varies by analysis mode:
+
+### Cached
+
+- **Comprehensive analyses only** - Due to their computational expense and token usage (~4,000 tokens)
+- Cache key includes all request parameters to ensure accuracy:
+  - Query string
+  - Search type
+  - Max results
+  - Handles (for Twitter searches)
+  - From date
+  - To date
+  - Analysis mode
+
+### Not cached
+
+- **Basic mode searches** - Always return fresh results
+- **Requests with different parameters** - Each unique parameter combination creates a separate cache entry
+- **Expired entries** - Items older than 30 minutes are automatically removed
+
+## Cache operations
+
+### Get operation
+
+The `get(key)` method retrieves cached data:
+
+```javascript
+get(key) {
+  const item = this.cache.get(key);
+  if (!item) return null;
+  
+  if (Date.now() - item.timestamp > this.ttl) {
+    this.cache.delete(key);
+    return null;
+  }
+  
+  return item.data;
+}
+```
+
+**Behavior:**
+1. Returns `null` if the key doesn't exist
+2. Checks if the item has expired (current time - timestamp > TTL)
+3. Deletes and returns `null` if expired
+4. Returns the cached data if valid
+
+### Set operation
+
+The `set(key, data)` method stores data in the cache:
+
+```javascript
+set(key, data) {
+  if (this.cache.size >= this.maxSize) {
+    const firstKey = this.cache.keys().next().value;
+    this.cache.delete(firstKey);
+  }
+  
+  this.cache.set(key, {
+    data,
+    timestamp: Date.now()
+  });
+}
+```
+
+**Behavior:**
+1. Checks if cache is at maximum capacity
+2. Evicts the oldest item (first in the Map) if full
+3. Stores the new item with current timestamp
+
+## Cache key format
+
+Cache keys are constructed from all request parameters to ensure accuracy:
+
+```javascript
+const cacheKey = `${sanitizedQuery}:${searchType}:${maxResults}:${JSON.stringify(handles)}:${fromDate}:${toDate}:comprehensive`;
+```
+
+**Example cache key:**
+```
+climate change policy:news:10:null:2025-01-01:2025-06-24:comprehensive
+```
+
+This ensures that:
+- Different queries create separate cache entries
+- Parameter changes invalidate the cache
+- Identical requests benefit from caching
+
+## Cache performance
+
+### Benefits
+
+1. **Reduced API calls** - Cached comprehensive analyses don't require new API requests
+2. **Lower token usage** - Saves ~4,000 tokens per cache hit
+3. **Faster responses** - Cache retrieval is nearly instantaneous
+4. **Cost optimization** - Reduces API costs for repeated queries
+
+### Trade-offs
+
+1. **Memory usage** - Cache stores up to 100 comprehensive analyses in memory
+2. **Staleness** - Cached results may be up to 30 minutes old
+3. **Basic mode exclusion** - Basic searches always fetch fresh data
+
+## Cache monitoring
+
+The cache size can be monitored through the health check tool:
+
+```json
+{
+  "server_healthy": true,
+  "api_healthy": true,
+  "api_details": {
+    "hasApiKey": true,
+    "cacheSize": 12
+  }
+}
+```
+
+The `cacheSize` field indicates how many items are currently cached.
+
+## Cache invalidation
+
+Cache entries are automatically invalidated in two scenarios:
+
+1. **Time-based expiration** - Items older than 30 minutes are deleted on access
+2. **Size-based eviction** - Oldest items are evicted when cache reaches 100 items
+
+### Manual cache clearing
+
+The cache can be manually cleared by restarting the server, as the cache is stored in memory only.
+
+## Best practices
+
+### For fresh data
+
+If you need the most current information:
+
+1. Use **basic mode** - Never cached, always fresh
+2. Wait 30+ minutes between identical comprehensive queries
+3. Slightly modify query parameters to bypass cache
+
+### For optimal performance
+
+To maximize cache benefits:
+
+1. Use **comprehensive mode** for analysis-heavy queries
+2. Reuse identical queries within the 30-minute window
+3. Structure queries consistently to improve cache hit rate
+4. Consider whether 30-minute-old analysis is acceptable for your use case
+
+### For cost optimization
+
+1. Leverage cache for expensive comprehensive analyses
+2. Use basic mode for simple lookups
+3. Monitor cache hit rates through repeated queries
+4. Balance freshness requirements with cost considerations
+
+## Implementation details
+
+The cache implementation uses JavaScript's native `Map` data structure:
+
+- **Insertion order preservation** - Maps maintain insertion order, enabling LRU behavior
+- **O(1) operations** - Both get and set operations are constant time
+- **Memory efficiency** - Only stores data and timestamp per entry
+
+The cache is instantiated once per server instance:
+
+```javascript
+class GrokSearchAPI {
+  constructor() {
+    this.cache = new SearchCache(); // Default: 100 items, 30 min TTL
+  }
+}
+```
+
+This ensures cache persistence across requests during the server's lifetime.
