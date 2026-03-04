@@ -1,0 +1,91 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Grok Search MCP Server",
+  "projectDescription": "Enhanced MCP server providing web search, news search, and Twitter/X search through xAI's Grok API with comprehensive analysis capabilities",
+  "theme": "aspen",
+  "primaryColor": "#848c8e",
+  "lightColor": "#11161e",
+  "darkColor": "#cfd0d2",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Tools Reference",
+            "pages": [
+              "tools/overview",
+              "tools/grok-search",
+              "tools/grok-web-search",
+              "tools/grok-news-search",
+              "tools/grok-twitter",
+              "tools/health-check"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/environment-variables",
+              "configuration/claude-desktop",
+              "configuration/advanced"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/analysis-modes",
+              "guides/date-filtering",
+              "guides/error-handling",
+              "guides/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Responses",
+            "pages": [
+              "api/response-formats",
+              "api/basic-mode",
+              "api/comprehensive-mode",
+              "api/error-responses"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "api/caching",
+              "api/performance",
+              "api/monitoring"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Web, news, and Twitter/X search with Grok API",
+    "Basic and comprehensive analysis modes",
+    "Automatic retry logic with exponential backoff",
+    "Intelligent caching for expensive queries",
+    "Built-in health monitoring and diagnostics",
+    "Date range filtering and input validation"
+  ],
+  "publicApiSurface": [
+    "grok_search - Universal search tool",
+    "grok_web_search - Web content search",
+    "grok_news_search - News and current events",
+    "grok_twitter - Social media search",
+    "health_check - Server diagnostics"
+  ]
+}
